@@ -11,7 +11,7 @@ in the paper from the two country input datasets.
 
 Repository: <https://github.com/AregaGetaneh/GEP_Ethiopia_and_Zimbabwe_using_SDDP>
 
-Repository: https://github.com/AregaGetaneh/GEP_Ethiopia_and_Zimbabwe_using_SDDP
+
 
 ## Repository layout
 
