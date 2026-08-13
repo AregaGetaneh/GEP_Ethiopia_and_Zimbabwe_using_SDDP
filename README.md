@@ -106,7 +106,7 @@ stochastic dual dynamic programming approach.* Energy Economics.
 @article{Abate_GEP_SSA,
   author  = {Abate, Arega Getaneh and Zhang, Xiao-Bing and Liu, Xiufeng and Liu, Ruyu and Nielsen, Per},
   title   = {Optimal power expansion planning under uncertainty in sub-{S}aharan {A}frica: A stochastic dual dynamic programming approach},
-  journal = {Energy Economics},
+  journal = {''},
   year    = {2026}
 }
 ```
