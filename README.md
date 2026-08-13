@@ -11,7 +11,7 @@ in the paper from the two country input datasets.
 
 Repository: <https://github.com/AregaGetaneh/GEP_Ethiopia_and_Zimbabwe_using_SDDP>
 
-
+Repository: https://github.com/AregaGetaneh/GEP_Ethiopia_and_Zimbabwe_using_SDDP
 
 ## Repository layout
 
@@ -96,5 +96,18 @@ repeating the preprocessing step.
 
 ## Citation
 
-If you use this code or data, please cite the paper. A BibTeX entry will be added
-on publication.
+If you use this code or data, please cite:
+
+Arega Getaneh Abate, Xiao-Bing Zhang, Xiufeng Liu, Ruyu Liu, and Per Nielsen.
+*Optimal power expansion planning under uncertainty in sub-Saharan Africa: A
+stochastic dual dynamic programming approach.* Energy Economics.
+
+```bibtex
+@article{Abate_GEP_SSA,
+  author  = {Abate, Arega Getaneh and Zhang, Xiao-Bing and Liu, Xiufeng and Liu, Ruyu and Nielsen, Per},
+  title   = {Optimal power expansion planning under uncertainty in sub-{S}aharan {A}frica: A stochastic dual dynamic programming approach},
+  journal = {Energy Economics},
+  year    = {2026}
+}
+```
+
