@@ -85,8 +85,10 @@ license.
    Figures are written to `figures/` and LaTeX table fragments to `tables/`.
 
 Steps 2 and 3 are the only compute-heavy part and require Gurobi. Steps 1 and 4
-need only Python. The forward-pass seed and thread count are set inside
-`gep_sddp.jl` so the trained policies are reproducible.
+need only Python. The forward-pass seed is fixed inside `gep_sddp.jl` for
+reproducible training. Gurobi is run with its default settings; because the
+linear programs can have alternative optimal bases, capacity splits at a fixed
+cost may vary marginally across solver versions or thread counts.
 
 ## Data
 

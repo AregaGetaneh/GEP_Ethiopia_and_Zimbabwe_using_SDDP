@@ -91,7 +91,7 @@ def storage():
 # SDDP convergence diagnostics
 def convergence():
     lines = [r"\begin{tabular}{lrrr}", r"\toprule",
-             r"Country & Lower bound & Out-of-sample & 95\% CI\\",
+             r"Country & Lower bound & Simulated & 95\% CI\\",
              r" & (training, \$B) & cost (\$B) & ($\pm$\$B)\\", r"\midrule"]
     for cc in ("ETH", "ZWE"):
         b = L(cc, "baseline")
@@ -170,7 +170,7 @@ def reserve():
             "ZWE": [("baseline", "Baseline"), ("carbon_tax_50", "Carbon tax \\$50/t"),
                     ("cap_matched_50", "Matched annual cap"),
                     ("budget_matched_50", "Matched cumulative budget"),
-                    ("high_demand", "High demand $+$50\\%"),
+                    ("high_demand", "High demand $+$33\\%"),
                     ("drought_stress", "Persistent drought")]}
     lines = [r"\begin{tabular}{lrrrr}", r"\toprule",
              r"Scenario & EUE (TWh) & Reserve shortfall (MW-year) & Years binding (\%) & Maximum annual (MW)\\",

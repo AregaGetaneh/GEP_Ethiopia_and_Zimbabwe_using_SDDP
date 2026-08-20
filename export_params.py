@@ -279,18 +279,19 @@ def experiment_scenarios(cc):
 def robustness_scenarios(cc):
     """Numerical and stochastic discretization checks on the baseline: temporal
     resolution, demand quadrature, hydrology persistence, and risk attitude.
-    For Zimbabwe the baseline emission cap is retained only for the block-structure
-    variant, matching the runs behind the robustness table."""
+    Each variant inherits the country's baseline policy setting, so for Zimbabwe
+    every variant retains the baseline 5 Mt emission cap, keeping the comparison
+    with the baseline like-for-like."""
+    cap = {"emission_cap": 5.0e9} if cc == "ZWE" else {}
     return [
         dict(name="temporal_annual_fixedpeak", label="Annual block, four-block peak",
-             annual_blocks=True, keep_peak=True,
-             **({"emission_cap": 5.0e9} if cc == "ZWE" else {})),
+             annual_blocks=True, keep_peak=True, **cap),
         dict(name="risk_cvar", label="Risk-averse (mean-CVaR, lambda=0.5, beta=0.1)",
-             risk_lambda=0.5, risk_beta=0.1),
-        dict(name="blocks_12", label="Twelve operating blocks", blocks_12=True),
-        dict(name="gh9", label="Nine Gauss-Hermite nodes", gh_nodes=9),
-        dict(name="hydro_persist_hi", label="More persistent hydrology", hydro_persist=0.2),
-        dict(name="hydro_persist_lo", label="Less persistent hydrology", hydro_persist=-0.2),
+             risk_lambda=0.5, risk_beta=0.1, **cap),
+        dict(name="blocks_12", label="Twelve operating blocks", blocks_12=True, **cap),
+        dict(name="gh9", label="Nine Gauss-Hermite nodes", gh_nodes=9, **cap),
+        dict(name="hydro_persist_hi", label="More persistent hydrology", hydro_persist=0.2, **cap),
+        dict(name="hydro_persist_lo", label="Less persistent hydrology", hydro_persist=-0.2, **cap),
     ]
 
 

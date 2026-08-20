@@ -851,27 +851,32 @@
       "name": "risk_cvar",
       "label": "Risk-averse (mean-CVaR, lambda=0.5, beta=0.1)",
       "risk_lambda": 0.5,
-      "risk_beta": 0.1
+      "risk_beta": 0.1,
+      "emission_cap": 5000000000.0
     },
     {
       "name": "blocks_12",
       "label": "Twelve operating blocks",
-      "blocks_12": true
+      "blocks_12": true,
+      "emission_cap": 5000000000.0
     },
     {
       "name": "gh9",
       "label": "Nine Gauss-Hermite nodes",
-      "gh_nodes": 9
+      "gh_nodes": 9,
+      "emission_cap": 5000000000.0
     },
     {
       "name": "hydro_persist_hi",
       "label": "More persistent hydrology",
-      "hydro_persist": 0.2
+      "hydro_persist": 0.2,
+      "emission_cap": 5000000000.0
     },
     {
       "name": "hydro_persist_lo",
       "label": "Less persistent hydrology",
-      "hydro_persist": -0.2
+      "hydro_persist": -0.2,
+      "emission_cap": 5000000000.0
     }
   ]
 }

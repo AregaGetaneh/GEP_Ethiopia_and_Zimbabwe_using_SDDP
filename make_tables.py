@@ -50,8 +50,8 @@ def t1():
 # ---- T2: Zimbabwe policy summary ----
 ZWE = [("baseline", "Baseline (5 Mt cap, no tax)"), ("carbon_tax_30", "Carbon tax \\$30/t"),
        ("carbon_tax_50", "Carbon tax \\$50/t"), ("emission_cap_glide", "Glide cap 5$\\to$2 Mt"),
-       ("combined_tax50_solar", "Tax \\$50 + Solar $-$30\\%"), ("re_inv_m50", "RE invest $-$50\\%"),
-       ("high_demand", "High demand $+$50\\%"), ("drought_stress", "Persistent drought"),
+       ("combined_tax50_solar", "Tax \\$50 + concessional solar"), ("re_inv_m50", "RE invest $-$50\\%"),
+       ("high_demand", "High demand $+$33\\%"), ("drought_stress", "Persistent drought"),
        ("cap_matched_50", "Matched annual cap"), ("budget_matched_50", "Matched cumulative budget")]
 
 
