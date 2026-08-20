@@ -142,7 +142,7 @@ def voll_vss():
 
 
 # Robustness of the baseline (discretization, temporal, persistence, risk)
-# Two country panels; columns match tab_robustness in the paper (cost, hydro, solar, emissions, EUE).
+# Two country panels; columns are cost, hydro, solar, emissions, and EUE.
 def robustness():
     rows = [("baseline", "Baseline (5 nodes, 4 blocks)"), ("gh9", "9 Gauss--Hermite nodes"),
             ("blocks_12", "12 operating blocks"), ("hydro_persist_lo", "Lower hydrology persistence"),
@@ -161,7 +161,7 @@ def robustness():
     return "\n".join(lines)
 
 
-# Reserve-adequacy outcomes; matches tab_reserve in the paper
+# Reserve-adequacy outcomes
 def reserve():
     sets = {"ETH": [("baseline", "Baseline"), ("constrained_hydro", "Constrained hydro"),
                     ("high_demand_expanded", "High demand $+$50\\%"),
@@ -186,7 +186,7 @@ def reserve():
     return "\n".join(lines)
 
 
-# Value-of-adaptivity benchmarks; matches tab_vss in the paper
+# Value-of-adaptivity benchmarks
 def vss():
     lines = [r"\begin{tabular}{lrrrr}", r"\toprule",
              r"Plan & Resource cost (\$B, NPV) & Expected unserved energy (TWh) & "
