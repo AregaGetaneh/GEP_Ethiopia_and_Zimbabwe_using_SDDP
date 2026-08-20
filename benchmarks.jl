@@ -3,7 +3,7 @@
 #
 # For a country baseline (demand + hydrology uncertainty):
 #   SDDP policy      : train, simulate out of sample (from gep_sddp.jl)
-#   Deterministic EV : solve on mean demand + normal hydrology -> fix investment,
+#   Deterministic EV : solve on mean demand + expected hydrology (stationary mean) -> fix investment,
 #                      evaluate that fixed schedule out of sample (dispatch adapts)
 #   Perfect info     : solve each realized path with the future known
 #   VSS  = E[cost | EV]  - E[cost | SDDP]
@@ -45,7 +45,7 @@ function build_det(E::Eff, demand::Vector{Float64}, muvec::Vector{Float64};
                 @constraint(m, G[e, b, t] <= E.cf[e, b] * E.H[b] * X[e, t])
             end
         end
-        # reservoir hydro: turbine power limit + seasonal water budgets (fix B3)
+        # reservoir hydro: turbine power limit + seasonal water budgets
         hi = E.hydro_idx
         @constraint(m, [b = 1:nB], G[hi, b, t] <= E.hydro_avail * E.H[b] * X[hi, t])
         @constraint(m, sum(G[hi, b, t] for b in 1:nB if E.season[b] == 1) <= muvec[t] * E.water_wet * E.alpha[hi] * X[hi, t])
@@ -63,7 +63,7 @@ function build_det(E::Eff, demand::Vector{Float64}, muvec::Vector{Float64};
         if t < NT
             for e in 1:nE
                 L = E.lead[e]
-                # construction pipeline (fix A1): commission after exactly L years
+                # construction pipeline: commission after exactly L years
                 @constraint(m, X[e, t+1] == X[e, t] + Q[e, 1, t] + (L == 1 ? I[e, t] : 0.0) - R[e, t])
                 for k in 1:Lmax-1
                     @constraint(m, Q[e, k, t+1] == Q[e, k+1, t] + (k == L - 1 ? I[e, t] : 0.0))
@@ -157,8 +157,13 @@ function run_benchmarks(cc; K = 200, seed = 20240807)
     sddp_salv = E.salv_frac > 0 ? disc(E.NT) * E.salv_frac * sum(E.a2[E.NT, e] * (cap[e, E.NT] - E.xinit[e] + sum(retire[e, :])) for e in 1:E.nE) / 1e9 : 0.0
     sddp_discunmet = sum(disc(t) * unmet[t] for t in 1:E.NT) / 1e6
 
-    # 2) Deterministic expected-value plan (mean demand, normal hydrology) -> fixed schedule
-    mean_mu = fill(E.mu[2], E.NT)                    # regime 2 = normal
+    # 2) Deterministic expected-value plan (mean demand, EXPECTED hydrology) -> fixed schedule
+    #    The expected-value problem fixes each uncertain input at its expectation. For
+    #    hydrology this is the stationary-probability-weighted mean multiplier
+    #    (= 1 by the normalization of E.mu), not the normal-regime value E.mu[2].
+    pistat = Float64.(P["hydro"]["stationary"])
+    exp_mu = dot(pistat, E.mu)                       # expected water multiplier
+    mean_mu = fill(exp_mu, E.NT)
     mEV, Ivar = build_det(E, E.central, mean_mu)
     optimize!(mEV)
     Istar = value.(Ivar)

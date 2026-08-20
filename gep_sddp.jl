@@ -1,20 +1,22 @@
 ###############################################################################
-# gep_sddp.jl  --  Revised multistage stochastic GEP, SDDP.jl + Gurobi
+# gep_sddp.jl  --  Multistage stochastic generation-expansion model (SDDP.jl + Gurobi)
 #
-# Implements the Recommended Energy Economics package (revision/SPEC.md):
-#   - demand-deviation AR(1) state  u_t          (fix A1)
-#   - three-state hydrology Markov graph          (fix B1)
-#   - four seasonal operating blocks              (fix B2 / adequacy B3)
-#   - lead-time pipeline states Q_{e,k}           (fix A2)
-#   - resource cost vs carbon-tax transfer split  (fix A4, computed ex post)
-#   - annual cap / cumulative budget instruments  (fix A3 / 5.2 / 6)
-#   - terminal salvage credit                     (fix 2.5)
+# Builds and solves the multistage stochastic generation-expansion planning
+# model for one country and writes one JSON result file per scenario. The model
+# combines:
+#   - a demand-deviation AR(1) state  u_t
+#   - a three-state hydrology Markov graph
+#   - four seasonal operating blocks
+#   - lead-time construction-pipeline states Q_{e,k}
+#   - a resource-cost vs carbon-tax transfer split (computed ex post)
+#   - annual-cap and cumulative-budget emission instruments
+#   - a terminal salvage credit
 #
 # Reads params_<CC>.json (from export_params.py). Writes results per scenario.
-# Benchmarks (deterministic EV, perfect information, VSS, EVPI) are in
-# benchmarks.jl and reuse prep_scenario / the deterministic builder here.
+# The deterministic (expected-value) and perfect-information benchmarks live in
+# benchmarks.jl and reuse prep_scenario and the deterministic builder here.
 #
-# Usage (HPC):
+# Usage:
 #   julia --project=. gep_sddp.jl ETH            # all Ethiopia scenarios
 #   julia --project=. gep_sddp.jl ZWE baseline   # one scenario
 ###############################################################################
@@ -32,7 +34,7 @@ const GH_P = [0.011257411327720693, 0.2220759220056126, 0.5333333333333333,
 
 # Gauss-Hermite nodes/weights for E[f(Z)], Z ~ N(0,1), by Golub-Welsch on the
 # probabilists' Hermite Jacobi matrix (off-diagonal sqrt(k), zero diagonal).
-# n = 5 reproduces (GH_X, GH_P); n = 7 or 9 is the review's discretization check.
+# n = 5 reproduces (GH_X, GH_P); higher n supports a discretization-refinement check.
 function gauss_hermite_normal(n::Int)
     n == 5 && return (GH_X, GH_P)
     J = SymTridiagonal(zeros(n), [sqrt(k) for k in 1:(n - 1)])
@@ -43,16 +45,15 @@ end
 const GH_CURRENT = Ref{Tuple{Vector{Float64},Vector{Float64}}}((GH_X, GH_P))
 
 # ----------------------------------------------------------------------------
-# Stopping rule: the original notebook's UB-LB optimality-gap criterion, ported
-# faithfully (Zembabwe.ipynb / Ethiopia_simple_model.ipynb, robust_gap_upper).
+# Stopping rule: an upper-bound / lower-bound optimality-gap criterion.
 # Each iteration after `min_iter`, the policy is re-simulated on a *fixed* set of
 # `m_ub` in-sample paths (the same paths every iteration, fixed by `seed`), the
 # one-sided 95% upper confidence bound UBu = mean + z*sd/sqrt(m_ub) is formed
-# (z = norm.ppf(0.95) = 1.645, NOT 1.96), and training stops once the relative
+# (z = 1.645, the one-sided 95% quantile), and training stops once the relative
 # gap (UBu - LB)/|LB| stays within `rel_tol` for `stable_needed` consecutive
 # iterations. Reusing a fixed path set makes the gap a smooth function of the
-# policy, so the stability count is not reset by Monte-Carlo jitter (this is why
-# the original converges efficiently, and why a fresh-sample UB does not).
+# policy, so the stability count is not reset by Monte-Carlo jitter, which lets
+# convergence be detected reliably where a fresh-sample UB would not.
 mutable struct RobustGapUpper <: SDDP.AbstractStoppingRule
     rel_tol::Float64
     min_iter::Int
@@ -76,7 +77,7 @@ function SDDP.convergence_test(model::SDDP.PolicyGraph, log::Vector{SDDP.Log},
     sims = SDDP.simulate(model, rule.m_ub)
     costs = Float64[sum(d[:stage_objective] for d in path) for path in sims]
     ubm = Statistics.mean(costs)
-    ubsd = length(costs) >= 2 ? Statistics.std(costs) : 0.0   # ddof=1 (matches np.std ddof=1)
+    ubsd = length(costs) >= 2 ? Statistics.std(costs) : 0.0   # sample standard deviation (n-1 denominator)
     ubu = ubm + rule.z * ubsd / sqrt(max(1, rule.m_ub))       # one-sided 95% upper CI
     gu  = ubu - LB
     rgu = gu / max(1e-9, abs(LB))
@@ -131,11 +132,12 @@ struct Eff
     cap_short_price::Float64            # $/MW-yr penalty for unmet reserve
     cap_credit::Vector{Float64}         # firm capacity credit at the peak, per tech
     peak_factor::Float64                # peak load (MW) per MWh of annual demand
-    # optional battery storage (B5); storage_capex == 0 disables it entirely
+    # optional battery storage; storage_capex == 0 disables it entirely
     storage_capex::Float64              # $/MW of power capacity (bundled duration)
     storage_eff::Float64                # round-trip efficiency
     storage_credit::Float64             # firm capacity credit of storage at the peak
     storage_fom::Float64                # $/MW-yr fixed O&M
+    needs_slack::Bool                   # enable penalized capacity recourse slack (coal-exit scenarios only)
 end
 
 getd(scn, k, default) = haskey(scn, k) && scn[k] !== nothing ? scn[k] : default
@@ -199,15 +201,15 @@ function prep_scenario(P, scn)
     hydro_avail = Float64(P["hydro_avail"])
     water_wet = Float64(P["water_wet"]); water_dry = Float64(P["water_dry"])
 
-    # 12-block temporal-resolution robustness check (review R1.4): subdivide each
-    # seasonal block into three equal-hour, equal-demand sub-blocks that resolve
-    # intra-block solar variation (evening dip vs midday surplus) through a
-    # mean-preserving solar-capacity-factor shape. Demand stays flat within each
-    # block, exactly as the four-block model assumes, so the subdivision introduces
-    # no new peak beyond the annual peak_factor and cleanly tests block convergence.
+    # 12-block temporal-resolution refinement: subdivide each seasonal block into
+    # three equal-hour, equal-demand sub-blocks that resolve intra-block solar
+    # variation (evening dip vs midday surplus) through a mean-preserving
+    # solar-capacity-factor shape. Demand stays flat within each block, exactly as
+    # the four-block model assumes, so the subdivision introduces no new peak
+    # beyond the annual peak_factor and tests convergence in the number of blocks.
     if getd(scn, "blocks_12", false) == true
         solar_i = tidx["Solar"]
-        sf = [0.85, 1.0, 1.15]                       # modest solar-cf shape, mean 1 -> block energy preserved
+        sf = [0.85, 1.0, 1.15]                       # solar-cf shape, mean 1 -> block energy preserved
         H2 = Float64[]; d2 = Float64[]; s2 = Int[]; cols = Vector{Vector{Float64}}()
         for b in 1:nB, j in 1:3
             push!(H2, H[b] / 3); push!(d2, dshare[b] / 3); push!(s2, season[b])
@@ -224,10 +226,10 @@ function prep_scenario(P, scn)
         hInit = [1.0, 0.0, 0.0]
         hP = [1.0 0.0 0.0; 1.0 0.0 0.0; 1.0 0.0 0.0]
     end
-    # Hydrology-persistence sensitivity (review R5.1): blend the transition matrix
-    # toward the identity (a>0, more persistent) or toward the stationary rows
-    # (a<0, less persistent). Both preserve the stationary hydrology distribution,
-    # so only drought clustering changes.
+    # Hydrology-persistence sensitivity: blend the transition matrix toward the
+    # identity (a>0, more persistent) or toward the stationary rows (a<0, less
+    # persistent). Both preserve the stationary hydrology distribution, so only
+    # drought clustering changes.
     if haskey(scn, "hydro_persist") && scn["hydro_persist"] !== nothing
         a = Float64(scn["hydro_persist"]); pistat = Float64.(P["hydro"]["stationary"])
         hP = a >= 0 ? (1 - a) .* hP .+ a .* Matrix{Float64}(I, 3, 3) :
@@ -266,26 +268,26 @@ function prep_scenario(P, scn)
     salv = P["salvage"] == true ? Float64(getd(P, "salvage_frac", 0.30)) : 0.0
 
     # --- scalar overrides for sensitivity and uncertainty-decomposition runs ---
-    disc_r  = Float64(getd(scn, "discount", P["discount"]))            # B4 discount-rate sensitivity
-    voll_v  = Float64(getd(scn, "voll", P["voll"]))                    # B4 VoLL sensitivity
+    disc_r  = Float64(getd(scn, "discount", P["discount"]))            # discount-rate sensitivity
+    voll_v  = Float64(getd(scn, "voll", P["voll"]))                    # VoLL sensitivity
     rho_v   = Float64(P["demand"]["rho"])
     sigma_v = Float64(P["demand"]["sigma_frac"])
-    GH_CURRENT[] = gauss_hermite_normal(Int(getd(scn, "gh_nodes", 5)))  # 7/9-node discretization check
+    GH_CURRENT[] = gauss_hermite_normal(Int(getd(scn, "gh_nodes", 5)))  # discretization-refinement check
     if haskey(scn, "reserve_margin") && scn["reserve_margin"] !== nothing
-        reserve_margin = Float64(scn["reserve_margin"])               # B4 reserve-margin sensitivity
+        reserve_margin = Float64(scn["reserve_margin"])               # reserve-margin sensitivity
     end
     if haskey(scn, "cap_credit_mult") && scn["cap_credit_mult"] !== nothing
-        cap_credit = cap_credit .* Float64(scn["cap_credit_mult"])     # B4 capacity-credit sensitivity
+        cap_credit = cap_credit .* Float64(scn["cap_credit_mult"])     # capacity-credit sensitivity
     end
     if haskey(scn, "mu_dry_mult") && scn["mu_dry_mult"] !== nothing
-        mu = copy(mu); mu[1] *= Float64(scn["mu_dry_mult"])           # B4 dry-multiplier sensitivity
+        mu = copy(mu); mu[1] *= Float64(scn["mu_dry_mult"])           # dry-multiplier sensitivity
     end
-    # uncertainty decomposition (B2)
+    # uncertainty decomposition: switch off individual sources of uncertainty
     getd(scn, "det_demand", false) == true && (sigma_v = 0.0)         # deterministic demand
     if getd(scn, "det_hydro", false) == true                          # deterministic normal hydrology
         mu = [1.0, 1.0, 1.0]; hP = [0.0 1.0 0.0; 0.0 1.0 0.0; 0.0 1.0 0.0]; hInit = [0.0, 1.0, 0.0]
     end
-    # single annual operating block (B1 temporal-resolution comparison)
+    # single annual operating block (temporal-resolution comparison)
     if getd(scn, "annual_blocks", false) == true
         orig_peak = peak_factor               # four-block seasonal peak, preserved if keep_peak
         cf1 = [sum(cf[e, b] * H[b] for b in 1:nB) / sum(H) for e in 1:nE]
@@ -307,7 +309,8 @@ function prep_scenario(P, scn)
         nB, H, dshare, cf, season, hydro_idx, hydro_avail, water_wet, water_dry, mu, hP, hInit,
         tau, cap, budget, salv, refurb_coal, fix_retire, alpha,
         reserve_margin, cap_short_price, cap_credit, peak_factor,
-        storage_capex, storage_eff, storage_credit, storage_fom)
+        storage_capex, storage_eff, storage_credit, storage_fom,
+        mode != "")
 end
 
 # ----------------------------------------------------------------------------
@@ -343,11 +346,21 @@ function build_sddp(E::Eff)
         # ---- controls ----
         @variable(sp, I[e = 1:nE] >= 0)                 # investment (enters pipeline bucket lead[e])
         @variable(sp, R[e = 1:nE] >= 0)                 # retirement (existing only)
+        # Relatively-complete-recourse slack on the capacity ceiling: lets a subproblem
+        # stay feasible in the rare states where forced retirement plus wide-demand
+        # investment would overshoot the ceiling. Penalized prohibitively below, so it is
+        # zero in any optimal policy. Enabled only for the coal-exit scenarios that need it
+        # (E.needs_slack); elsewhere capslack is a constant 0, leaving the model bit-identical.
+        if E.needs_slack
+            @variable(sp, capslack[e = 1:nE] >= 0)
+        else
+            capslack = zeros(nE)
+        end
         @variable(sp, G[e = 1:nE, b = 1:nB] >= 0)       # block generation (MWh)
         @variable(sp, Z[b = 1:nB] >= 0)                 # block unserved (MWh)
         @variable(sp, rshort >= 0)                      # planning reserve shortfall (MW)
 
-        # ---- optional battery storage (B5): intra-year shifting + firm capacity ----
+        # ---- optional battery storage: intra-year shifting + firm capacity ----
         has_stor = E.storage_capex > 0
         if has_stor
             @variable(sp, Xs >= 0, SDDP.State, initial_value = 0.0)   # power capacity (MW)
@@ -376,9 +389,9 @@ function build_sddp(E::Eff)
         # energy across blocks (stores wet inflow, releases in the dry season).
         hi = E.hydro_idx
         @constraint(sp, [b = 1:nB], G[hi, b] <= E.hydro_avail * E.H[b] * X[hi].in)
-        # seasonal water-energy budgets (fix B3): wet and dry seasons each get a share
-        # of the regime-scaled annual water energy, so dry-season hydro is genuinely
-        # scarce rather than freely shiftable across the whole year.
+        # seasonal water-energy budgets: wet and dry seasons each get a share of the
+        # regime-scaled annual water energy, so dry-season hydro is genuinely scarce
+        # rather than freely shiftable across the whole year.
         @constraint(sp, sum(G[hi, b] for b in 1:nB if E.season[b] == 1) <=
                         E.mu[m] * E.water_wet * E.alpha[hi] * X[hi].in)
         @constraint(sp, sum(G[hi, b] for b in 1:nB if E.season[b] == 2) <=
@@ -392,7 +405,7 @@ function build_sddp(E::Eff)
         # ---- capacity / pipeline / retirement dynamics ----
         for e in 1:nE
             L = E.lead[e]
-            # Construction pipeline (fix A1): a commitment made in year t commissions
+            # Construction pipeline: a commitment made in year t commissions
             # after exactly L years. It enters bucket L-1 of next year's pipeline and
             # advances one bucket per year; a one-year project commissions directly into
             # next year's capacity. Bucket 1 always commissions in the following year.
@@ -409,11 +422,11 @@ function build_sddp(E::Eff)
             if E.fix_retire
                 @constraint(sp, S[e].out <= E.accum[t, e] + 1e-6)   # no economic retirement beyond floor
             end
-            @constraint(sp, X[e].out <= E.ub[e])
+            @constraint(sp, X[e].out <= E.ub[e] + capslack[e])
             # investment headroom: installed + everything already in the pipeline + new
             # commitment, net of retirement this stage, may not exceed the ceiling.
             # Guarantees X.out <= ub stays feasible at every future stage (recourse).
-            @constraint(sp, I[e] <= E.ub[e] - X[e].in - sum(Q[e, k].in for k in 1:Lmax) + R[e])
+            @constraint(sp, I[e] <= E.ub[e] - X[e].in - sum(Q[e, k].in for k in 1:Lmax) + R[e] + capslack[e])
         end
 
         # ---- demand state transition (noise set in parameterize) ----
@@ -439,7 +452,8 @@ function build_sddp(E::Eff)
         unserved = E.voll * sum(Z[b] for b in 1:nB)
         reserve_pen = E.cap_short_price * rshort
         stor_cost = has_stor ? (E.storage_capex * Is + E.storage_fom * Xs.in) : 0.0
-        stage = disc(t) * (var_op + invest + fixed_om + unserved + refurb + reserve_pen + stor_cost) / MONEY
+        cap_pen = 1e8 * sum(capslack[e] for e in 1:nE)   # prohibitive: keeps capslack at 0 unless needed for feasibility
+        stage = disc(t) * (var_op + invest + fixed_om + unserved + refurb + reserve_pen + stor_cost + cap_pen) / MONEY
 
         # terminal salvage credit for NEW-BUILD capacity still standing (removes end-effect
         # bias). Only capacity built within the horizon, X - (xinit - S), receives a credit;
@@ -474,7 +488,9 @@ end
 function simulate_summary(model, E; N = 1000, seeds = [1, 2, 3, 4, 5])
     vars = [:X, :G, :I, :R, :Z, :u, :rshort]
     per_seed = Dict{Symbol,Vector{Float64}}(:cost => Float64[], :emis => Float64[],
-                                            :unmet => Float64[], :rshort => Float64[])
+                                            :unmet => Float64[], :rshort => Float64[],
+                                            :rshort_MWyr => Float64[], :rshort_bind => Float64[],
+                                            :rshort_max => Float64[])
     # accumulate mean trajectories from the first seed for reporting
     sims_ref = nothing
     for (si, sd) in enumerate(seeds)
@@ -489,11 +505,16 @@ function simulate_summary(model, E; N = 1000, seeds = [1, 2, 3, 4, 5])
                 em += sum(E.EM[e] * sum(G[e, b] for b in 1:E.nB) for e in 1:E.nE)
                 un += sum(stage[:Z][b] for b in 1:E.nB)
             end
-            rs = sum(stage[:rshort] for stage in path)   # reserve shortfall MW summed over stages
+            rsv = [stage[:rshort] for stage in path]     # per-year reserve shortfall (MW)
+            rs = sum(rsv)                                 # summed over stages (MW-year over the horizon)
             push!(per_seed[:cost], c)
             push!(per_seed[:emis], em / 1e9)     # Mt cumulative
             push!(per_seed[:unmet], un / 1e6)    # TWh cumulative
             push!(per_seed[:rshort], rs / E.NT)  # mean reserve shortfall (MW)
+            # physical reserve-adequacy metrics from the simulated paths
+            push!(per_seed[:rshort_MWyr], rs)                         # expected reserve shortfall (MW-year)
+            push!(per_seed[:rshort_bind], count(>(1e-3), rsv) / E.NT) # share of years with positive shortfall
+            push!(per_seed[:rshort_max], maximum(rsv))                # worst-year shortfall on the path (MW)
         end
     end
     ci(v) = 1.96 * std(v) / sqrt(length(v))
@@ -503,6 +524,9 @@ function simulate_summary(model, E; N = 1000, seeds = [1, 2, 3, 4, 5])
         "oos_emis_Mt_mean"   => mean(per_seed[:emis]),
         "oos_unmet_TWh_mean" => mean(per_seed[:unmet]),
         "oos_reserve_short_MW_mean" => mean(per_seed[:rshort]),
+        "oos_reserve_short_MWyr_mean" => mean(per_seed[:rshort_MWyr]),   # expected reserve shortfall (MW-year)
+        "oos_reserve_bind_frac_mean"  => mean(per_seed[:rshort_bind]),   # share of years binding
+        "oos_reserve_short_max_MW"    => maximum(per_seed[:rshort_max]), # maximum annual shortfall (MW)
     ), sims_ref
 end
 
@@ -529,7 +553,7 @@ function mean_trajectories(sims, E)
 end
 
 # ----------------------------------------------------------------------------
-# JSON output for the Python plotting layer
+# JSON output for the plotting layer
 # ----------------------------------------------------------------------------
 function write_result(path, E, scn, model, oos, sims; extra = Dict())
     cap, genb, build, retire, unmet, emis = mean_trajectories(sims, E)
@@ -541,7 +565,7 @@ function write_result(path, E, scn, model, oos, sims; extra = Dict())
                           sum(E.a2[t, e] * build[e, t] for e in 1:E.nE) +
                           sum(E.b1[e] * cap[e, t] for e in 1:E.nE)) for t in 1:E.NT) / 1e9
     tax_transfer = E.tau * sum(disc[t] * E.EM[e] * genyr[e, t] for e in 1:E.nE, t in 1:E.NT) / 1e9
-    # concessional-finance subsidy (fix 6.3): the public cost of financing the technology
+    # concessional-finance subsidy: the public cost of financing the technology
     # at a concessional rather than commercial WACC. a2 already carries the effective
     # (concessionally financed) CAPEX = full * mult, so the subsidy per MW is full*(1-mult).
     fin = get(scn, "finance_subsidy", nothing)
@@ -584,6 +608,9 @@ function write_result(path, E, scn, model, oos, sims; extra = Dict())
         "salvage_BUSD" => salvage_cost,                     # terminal salvage credit (NPV)
         "eue_TWh" => eue_TWh,                               # expected unserved energy
         "reserve_short_MW" => get(oos, "oos_reserve_short_MW_mean", 0.0),
+        "reserve_short_MWyr" => get(oos, "oos_reserve_short_MWyr_mean", 0.0),   # expected reserve shortfall (MW-year)
+        "reserve_bind_frac" => get(oos, "oos_reserve_bind_frac_mean", 0.0),     # share of years with positive shortfall
+        "reserve_short_max_MW" => get(oos, "oos_reserve_short_max_MW", 0.0),    # maximum annual shortfall (MW)
         "total_cost_BUSD" => oos["oos_cost_BUSD_mean"],     # simulated objective (all terms)
         "oos" => oos,
     )
@@ -599,22 +626,25 @@ function run_scenario(P, scn; outdir, extra = Dict())
     model = build_sddp(E)
     @info "Training $(scn["name"])"
     Random.seed!(12345)                              # reproducible forward-pass sampling
-    # Risk measure (review R1.3): default risk-neutral; a scenario carrying
-    # "risk_lambda" trains under a nested mean-CVaR, lambda*E + (1-lambda)*AVaR_beta.
+    # Risk measure: default risk-neutral; a scenario carrying "risk_lambda" trains
+    # under a nested mean-CVaR, lambda*E + (1-lambda)*AVaR_beta.
     rm = getd(scn, "risk_lambda", nothing) === nothing ? SDDP.Expectation() :
          SDDP.EAVaR(lambda = Float64(scn["risk_lambda"]),
                     beta   = Float64(getd(scn, "risk_beta", 0.1)))
-    # Original notebook's UB-LB optimality-gap stopping rule, ported unchanged and
-    # applied identically to both countries, with a generous iteration cap as a
-    # backstop. A scenario may loosen rel_tol if a run cannot reach the default gap.
+    # UB-LB optimality-gap stopping rule, applied identically to both countries,
+    # with a generous iteration cap as a backstop. A scenario may loosen rel_tol if
+    # a run cannot reach the default gap.
     reltol = Float64(getd(scn, "rel_tol", 0.03))
-    wall_s = @elapsed SDDP.train(model; iteration_limit = 200, risk_measure = rm,
+    # A scenario may raise the iteration backstop so a case that has not yet met the
+    # statistical gap (e.g. combined tax + lower-solar-cost) can train further.
+    itcap = Int(getd(scn, "iteration_limit", 200))
+    wall_s = @elapsed SDDP.train(model; iteration_limit = itcap, risk_measure = rm,
                stopping_rules = [RobustGapUpper(rel_tol = reltol, min_iter = 30,
                                                 stable_needed = 5, m_ub = 500)],
                print_level = 1)
     n_iter = try; length(model.most_recent_training_results.log); catch; -1; end
     @info "trained $(scn["name"])  iters=$n_iter  wall=$(round(wall_s, digits = 1))s"
-    flush(stdout); flush(stderr)                     # LSF buffers file stdout: force the log out
+    flush(stdout); flush(stderr)                     # force buffered log output when stdout is redirected to a file
     extra = merge(extra, Dict("wall_s" => wall_s, "n_iter" => n_iter))
     oos, sims = simulate_summary(model, E)
     mkpath(outdir)
@@ -635,17 +665,19 @@ function trial_emissions(P, scn, field, value)
     SDDP.train(model; iteration_limit = 200, print_level = 0,
                stopping_rules = [RobustGapUpper(rel_tol = 0.03, min_iter = 30,
                                                 stable_needed = 5, m_ub = 500)])
-    oos, _ = simulate_summary(model, E)
+    # Calibrate on a dedicated seed set, independent of the seeds used for the final
+    # matched-policy evaluation in run_scenario, so tuning does not fit the evaluation sample.
+    oos, _ = simulate_summary(model, E; seeds = [201, 202, 203, 204, 205])
     return oos["oos_emis_Mt_mean"]
 end
 
-# Matched stringency (fix A4): calibrate an annual cap (flat, Mt/yr) or a cumulative
-# budget (Mt) by bisection so the out-of-sample expected cumulative emissions equal the
+# Matched stringency: calibrate an annual cap (flat, Mt/yr) or a cumulative budget
+# (Mt) by bisection so the out-of-sample expected cumulative emissions equal the
 # reference tax scenario's, within tolerance. Writes the calibrated level into scn.
 function calibrate_matched!(P, scn, target_Mt; tol = 0.02, maxit = 7)
     inst = get(scn, "instrument", "annual_cap")
-    # Tighten the cumulative-budget match to the cap's tolerance (review R1.2#6),
-    # so an asymmetric tolerance cannot flatter the budget's cost advantage.
+    # Tighten the cumulative-budget match to the cap's tolerance, so an asymmetric
+    # tolerance cannot flatter the budget's cost advantage.
     if inst == "cumulative_budget"; tol = 0.005; maxit = 14; end
     NT = length(P["years"])
     field = inst == "cumulative_budget" ? "cumulative_budget" : "emission_cap"

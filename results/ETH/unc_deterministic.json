@@ -1039,21 +1039,27 @@
     "budget_active": false,
     "cap_active": false,
     "carbon_tax": 0.0,
-    "label": "Deterministic demand and hydrology (B2)",
+    "label": "Deterministic demand and hydrology",
     "lower_bound_BUSD": 18.889914211324058,
     "n_iter": 54,
     "scenario": "unc_deterministic",
-    "wall_s": 122.457088024
+    "wall_s": 130.734556843
   },
   "oos": {
     "oos_cost_BUSD_ci": 3.1724576679545985e-16,
     "oos_cost_BUSD_mean": 19.261686758891777,
     "oos_emis_Mt_mean": 45.835090277201694,
+    "oos_reserve_bind_frac_mean": 0.538461538461539,
     "oos_reserve_short_MW_mean": 522.6609791765532,
+    "oos_reserve_short_MWyr_mean": 13589.185458590358,
+    "oos_reserve_short_max_MW": 3499.3627304639194,
     "oos_unmet_TWh_mean": 0.07601544617208039
   },
   "reliability_cost_BUSD": 0.4489667895455711,
+  "reserve_bind_frac": 0.538461538461539,
   "reserve_short_MW": 522.6609791765532,
+  "reserve_short_MWyr": 13589.185458590358,
+  "reserve_short_max_MW": 3499.3627304639194,
   "resource_cost_BUSD": 18.672281853259385,
   "retire_MW": [
     [

@@ -1039,21 +1039,27 @@
     "budget_active": false,
     "cap_active": true,
     "carbon_tax": 0.0,
-    "label": "Stochastic hydrology only (B2)",
+    "label": "Stochastic hydrology only",
     "lower_bound_BUSD": 6.608063378499115,
     "n_iter": 67,
     "scenario": "unc_hydro_only",
-    "wall_s": 192.700521021
+    "wall_s": 271.826457989
   },
   "oos": {
     "oos_cost_BUSD_ci": 0.005906335203821829,
     "oos_cost_BUSD_mean": 6.681255459119601,
     "oos_emis_Mt_mean": 58.804634634283055,
+    "oos_reserve_bind_frac_mean": 0.5231000000000001,
     "oos_reserve_short_MW_mean": 77.6879337340708,
+    "oos_reserve_short_MWyr_mean": 2019.8862770858407,
+    "oos_reserve_short_max_MW": 691.0185605412335,
     "oos_unmet_TWh_mean": 0.007278647571270954
   },
   "reliability_cost_BUSD": 0.03810243025576204,
+  "reserve_bind_frac": 0.5231000000000001,
   "reserve_short_MW": 77.6879337340708,
+  "reserve_short_MWyr": 2019.8862770858407,
+  "reserve_short_max_MW": 691.0185605412335,
   "resource_cost_BUSD": 6.75763468438297,
   "retire_MW": [
     [

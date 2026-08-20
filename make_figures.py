@@ -1,7 +1,9 @@
 """
-make_figures.py  -- publication figures for the revised paper.
-Reads results/<CC>/*.json (+ params_<CC>.json for cost splits), writes PDFs to
-revision/figures/. Pure JSON + matplotlib. Run:  python make_figures.py
+Generate the publication figures for the generation-expansion study.
+
+Reads the solved scenario files in results/<CC>/*.json (and params_<CC>.json for
+cost splits) and writes the figure PDFs to figures/. Uses only JSON input and
+matplotlib. Run:  python make_figures.py
 """
 
 import json
@@ -18,11 +20,12 @@ FIG.mkdir(exist_ok=True)
 
 mpl.rcParams.update({
     "figure.dpi": 150, "savefig.dpi": 600,
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "font.family": "serif",
+    "font.serif": ["Times New Roman", "Nimbus Roman No9 L", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
     "axes.unicode_minus": False,
-    "font.size": 11, "axes.titlesize": 11, "axes.labelsize": 11,
-    "xtick.labelsize": 9.5, "ytick.labelsize": 9.5, "legend.fontsize": 9.5,
+    "font.size": 13, "axes.titlesize": 13, "axes.labelsize": 13,
+    "xtick.labelsize": 12, "ytick.labelsize": 12, "legend.fontsize": 12,
     "axes.spines.top": False, "axes.spines.right": False,
     "axes.linewidth": 0.6, "axes.grid": True, "grid.linewidth": 0.4,
     "grid.alpha": 0.30, "lines.linewidth": 1.7,
@@ -96,13 +99,12 @@ def fig_capacity_traj(cc):
         stacks = [[c / 1000.0 for c in r["capacity_MW"][e]] for e in range(len(ts))]
         ax.stackplot(YEARS, *stacks, colors=[TCOL[t] for t in ts], alpha=0.9,
                      edgecolor="white", linewidth=0.2)
-        ax.set_title(lab, fontsize=10); ax.set_xlim(2025, 2050); ax.margins(y=0)
+        ax.set_title(lab, fontsize=12); ax.set_xlim(2025, 2050); ax.margins(y=0)
         ax.xaxis.set_major_locator(mtick.MultipleLocator(10))
     for ax in axes[:, 0]:
         ax.set_ylabel("Installed capacity (GW)")
     bottom_legend(fig, ts)
-    fig.suptitle(f"{NAME[cc]}: installed capacity mix by scenario, 2025--2050", y=0.99, fontsize=12)
-    fig.tight_layout(rect=(0, 0.05, 1, 0.97))
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     fig.savefig(FIG / f"F1_{cc}_capacity_traj.pdf"); plt.close(fig)
 
 
@@ -112,7 +114,7 @@ _BIGBAND = {"ETH": {"Hydro", "Solar", "Bioenergy"},
 
 
 def fig_baseline_captraj(cc):
-    """Clean single-panel baseline installed-capacity trajectory (headline visual)."""
+    """Single-panel baseline installed-capacity trajectory."""
     ts = techs(cc)
     r = load(cc, "baseline")
     caps = {t: [c / 1000.0 for c in r["capacity_MW"][i]] for i, t in enumerate(ts)}
@@ -138,14 +140,13 @@ def fig_baseline_captraj(cc):
     ax.set_xlim(2025, 2050); ax.set_ylim(0, tot[-1] * 1.16); ax.margins(x=0)
     ax.xaxis.set_major_locator(mtick.MultipleLocator(5))
     ax.set_xlabel("Year"); ax.set_ylabel("Installed capacity (GW)")
-    ax.set_title(f"{NAME[cc]}: baseline installed-capacity trajectory")
     fig.tight_layout()
     fig.savefig(FIG / f"F1b_{cc}_capacity_baseline.pdf"); plt.close(fig)
 
 
 # ============================================================= 1c. new-build trajectory (per technology, per scenario)
 def fig_build_traj(cc):
-    """New capacity commissioned per year, one panel per technology, one line per scenario."""
+    """Installed-capacity trajectory, one panel per technology, one line per scenario."""
     ts = techs(cc)
     scc = CORE[cc]
     cols = SCEN_COL[:len(scc)]
@@ -153,28 +154,21 @@ def fig_build_traj(cc):
     axes = axes.ravel()
     for i, t in enumerate(ts):
         ax = axes[i]
-        peak = 0.0
         for (scn, _), c in zip(scc, cols):
             r = load(cc, scn)
-            series = r["build_MW"][i]
-            peak = max(peak, max(series))
-            lw = 2.0 if scn == "baseline" else 1.2
+            series = [cap / 1000.0 for cap in r["capacity_MW"][i]]
+            lw = 2.2 if scn == "baseline" else 1.2
             ax.plot(YEARS, series, color=c, lw=lw)
-        ax.set_title(t, fontsize=10)
+        ax.set_title(t, fontsize=12)
         ax.set_xlim(2025, 2050)
-        ax.set_ylabel("MW/yr"); ax.grid(True, alpha=0.3, lw=0.4)
+        ax.set_ylabel("Installed capacity (GW)"); ax.grid(True, alpha=0.3, lw=0.4)
         ax.xaxis.set_major_locator(mtick.MultipleLocator(10))
-        if peak < 1.0:
-            ax.set_ylim(0, 1)
-            ax.text(0.5, 0.5, "no new build", transform=ax.transAxes, ha="center",
-                    va="center", fontsize=10, color="#888888", style="italic")
-        else:
-            ax.set_ylim(bottom=0)
+        ax.set_ylim(bottom=0)
     for j in range(len(ts), len(axes)):
         axes[j].axis("off")
     handles = [plt.Line2D([0], [0], color=c, lw=1.8) for c in cols]
     axes[-1].legend(handles, [lab for _, lab in scc], loc="center",
-                    fontsize=9, frameon=False, title="Scenario")
+                    fontsize=11, frameon=False, title="Scenario")
     fig.tight_layout()
     fig.savefig(FIG / f"F1c_{cc}_build_traj.pdf"); plt.close(fig)
 
@@ -192,7 +186,7 @@ def fig_genmix_traj(cc):
                sum(r["unserved_TWh"][b][i] for b in range(len(r["unserved_TWh"])))
                for i in range(26)]
         ax.plot(YEARS, dem, color="k", lw=1.1, ls="--")
-        ax.set_title(lab, fontsize=10); ax.set_xlim(2025, 2050); ax.margins(y=0)
+        ax.set_title(lab, fontsize=12); ax.set_xlim(2025, 2050); ax.margins(y=0)
         ax.xaxis.set_major_locator(mtick.MultipleLocator(10))
     for ax in axes[:, 0]:
         ax.set_ylabel("Generation (TWh)")
@@ -200,9 +194,7 @@ def fig_genmix_traj(cc):
     handles.append(plt.Line2D([], [], color="k", ls="--", lw=1.1))
     fig.legend(handles, ts + ["Demand"], ncol=len(ts) + 1, loc="lower center",
                bbox_to_anchor=(0.5, -0.01))
-    fig.suptitle(f"{NAME[cc]}: generation mix by scenario, 2025--2050 (dashed: demand)",
-                 y=0.99, fontsize=12)
-    fig.tight_layout(rect=(0, 0.05, 1, 0.97))
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     fig.savefig(FIG / f"F2_{cc}_genmix_traj.pdf"); plt.close(fig)
 
 
@@ -220,7 +212,6 @@ def fig_capacity_2050(cc):
                color=TCOL[t], label=t, edgecolor="white", linewidth=0.2)
     ax.set_xticks(list(x)); ax.set_xticklabels(labels, rotation=20, ha="right")
     ax.set_ylabel("Installed capacity in 2050 (GW)")
-    ax.set_title(f"{NAME[cc]}: 2050 installed capacity by technology")
     ax.legend(ncol=n, loc="upper center", bbox_to_anchor=(0.5, -0.18))
     fig.savefig(FIG / f"F3_{cc}_capacity_2050.pdf"); plt.close(fig)
 
@@ -238,7 +229,6 @@ def fig_genmix2050(cc):
         bottom = [b + v for b, v in zip(bottom, data[t])]
     ax.set_xticks(list(x)); ax.set_xticklabels(labels, rotation=20, ha="right")
     ax.set_ylabel("Generation in 2050 (TWh)")
-    ax.set_title(f"{NAME[cc]}: 2050 generation mix by scenario")
     ax.legend(ncol=len(ts), loc="upper center", bbox_to_anchor=(0.5, -0.18))
     fig.savefig(FIG / f"F4_{cc}_genmix2050.pdf"); plt.close(fig)
 
@@ -257,7 +247,6 @@ def fig_cost_decomp(cc):
            color=COST_COL["Fixed O&M"], label="Fixed O&M")
     ax.set_xticks(list(x)); ax.set_xticklabels(labels, rotation=20, ha="right")
     ax.set_ylabel("Resource cost (\\$B, NPV)")
-    ax.set_title(f"{NAME[cc]}: system cost by scenario, decomposed")
     ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.18))
     fig.savefig(FIG / f"F5_{cc}_cost_decomp.pdf"); plt.close(fig)
 
@@ -277,7 +266,6 @@ def fig_zwe_baseline_panel():
     ax2 = ax.twinx()
     ax2.plot(YEARS, r["emissions_Mt"], color="k", lw=2.0, ls="--")
     ax2.set_ylabel("Annual CO$_2$ emissions (Mt)"); ax2.grid(False); ax2.set_ylim(bottom=0)
-    ax.set_title("Zimbabwe: installed capacity and annual emissions, baseline")
     handles = [plt.Rectangle((0, 0), 1, 1, color=TCOL[t]) for t in ts]
     handles.append(plt.Line2D([], [], color="k", ls="--", lw=2.0))
     fig.legend(handles, ts + ["Emissions"], ncol=len(ts) + 1, loc="lower center",
@@ -302,7 +290,7 @@ def fig_zwe_emissions_traj():
     ax.set_ylabel("Annual CO$_2$ emissions (Mt)")
     ax.grid(True, alpha=0.3, lw=0.4)
     ax.xaxis.set_major_locator(mtick.MultipleLocator(5))
-    ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.16), fontsize=8.5)
+    ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.16), fontsize=10)
     fig.savefig(FIG / "F7_ZWE_emissions_traj.pdf"); plt.close(fig)
 
 
@@ -325,10 +313,9 @@ def fig_zwe_frontier():
         x, y = r["avg_emissions_Mt"], r["resource_cost_BUSD"]
         ax.scatter(x, y, s=55, color="#4477AA", zorder=3, edgecolor="white", linewidth=0.5)
         ax.annotate(lab[scn], (x, y), textcoords="offset points",
-                    xytext=off.get(scn, (7, 4)), fontsize=9, ha=ha.get(scn, "left"))
+                    xytext=off.get(scn, (7, 4)), fontsize=10, ha=ha.get(scn, "left"))
     ax.set_xlabel("Average annual emissions (MtCO$_2$)")
     ax.set_ylabel("Resource cost (\\$B, NPV)")
-    ax.set_title("Zimbabwe: cost--emissions outcomes by policy")
     fig.savefig(FIG / "F8_ZWE_frontier.pdf"); plt.close(fig)
 
 
@@ -351,9 +338,7 @@ def fig_vss():
          plt.Line2D([], [], color="#EE6677", marker="o", lw=2.0)]
     fig.legend(h, ["Resource cost (\\$B)", "Expected unserved (TWh)"],
                ncol=2, loc="lower center", bbox_to_anchor=(0.5, -0.04))
-    fig.suptitle("Value of adaptivity: deterministic vs stochastic vs perfect information",
-                 y=1.0, fontsize=12)
-    fig.tight_layout(rect=(0, 0.06, 1, 0.96))
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     fig.savefig(FIG / "F9_value_of_adaptivity.pdf"); plt.close(fig)
 
 
@@ -371,12 +356,11 @@ def fig_zwe_matched():
     a1.set_xticks(list(x)); a1.set_xticklabels(labels)
     a1.set_ylabel("Economic resource cost (\\$B)"); a1.set_title("Resource cost")
     for xi, e in zip(x, eue):
-        a1.annotate(f"EUE {e:.2f} TWh", (xi, 0.15), ha="center", fontsize=8, color="#772222")
+        a1.annotate(f"EUE {e:.2f} TWh", (xi, 0.15), ha="center", fontsize=10, color="#772222")
     a2.bar(x, emis, 0.6, color=col)
     a2.set_xticks(list(x)); a2.set_xticklabels(labels)
     a2.set_ylabel("Average emissions (MtCO$_2$)"); a2.set_title("Emissions (matched)")
-    fig.suptitle("Zimbabwe: price vs quantity at matched stringency", y=1.0, fontsize=12)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.tight_layout(rect=(0, 0, 1, 1))
     fig.savefig(FIG / "F10_ZWE_matched.pdf"); plt.close(fig)
 
 
@@ -390,8 +374,7 @@ def fig_adequacy():
         ax.bar(x, eue, 0.62, color="#EE6677", edgecolor="white", linewidth=0.3)
         ax.set_xticks(list(x)); ax.set_xticklabels(labels, rotation=25, ha="right")
         ax.set_ylabel("Expected unserved energy (TWh)"); ax.set_title(NAME[cc])
-    fig.suptitle("Adequacy: expected unserved energy by scenario", y=1.0, fontsize=12)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.tight_layout(rect=(0, 0, 1, 1))
     fig.savefig(FIG / "F11_adequacy.pdf"); plt.close(fig)
 
 
@@ -408,11 +391,10 @@ def fig_annual_cost():
                      COST_COL["Operating"], COST_COL["Fixed O&M"]],
                      labels=["Investment", "Operating", "Fixed O&M"], alpha=0.9)
         ax.set_xlim(2025, 2050); ax.set_title(NAME[cc]); ax.set_xlabel("Year"); ax.margins(y=0)
-    axes[0].set_ylabel("Annual cost (\\$B/yr)")
+    axes[0].set_ylabel("Annual cost (\\$B/year)")
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, ncol=3, loc="lower center", bbox_to_anchor=(0.5, -0.03))
-    fig.suptitle("Annual system cost by component, baseline", y=1.0, fontsize=12)
-    fig.tight_layout(rect=(0, 0.05, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     fig.savefig(FIG / "F12_annual_cost.pdf"); plt.close(fig)
 
 
@@ -422,6 +404,6 @@ if __name__ == "__main__":
         fig_genmix2050(cc); fig_cost_decomp(cc)
     fig_zwe_baseline_panel(); fig_zwe_emissions_traj(); fig_zwe_frontier()
     fig_vss(); fig_zwe_matched(); fig_adequacy(); fig_annual_cost()
-    print("figures written to", FIG)
+    print("figures written to figures/:")
     for p in sorted(FIG.glob("*.pdf")):
         print("  ", p.name)

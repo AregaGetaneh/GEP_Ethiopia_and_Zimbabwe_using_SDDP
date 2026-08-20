@@ -485,8 +485,8 @@
     2
   ],
   "demand": {
-    "rho": 0.9,
-    "sigma_frac": 0.0147,
+    "rho": 0.81,
+    "sigma_frac": 0.077,
     "n_nodes": 5
   },
   "hydro": {
@@ -695,7 +695,8 @@
       "finance_subsidy": {
         "tech": "Solar",
         "mult": 0.6135
-      }
+      },
+      "iteration_limit": 400
     },
     {
       "name": "re_inv_m50",
@@ -738,99 +739,92 @@
     },
     {
       "name": "temporal_annual",
-      "label": "Annual single block (B1)",
+      "label": "Annual single block",
       "annual_blocks": true,
-      "emission_cap": 5000000000.0
-    },
-    {
-      "name": "temporal_annual_fixedpeak",
-      "label": "Annual block, four-block peak (B1)",
-      "annual_blocks": true,
-      "keep_peak": true,
       "emission_cap": 5000000000.0
     },
     {
       "name": "unc_deterministic",
-      "label": "Deterministic demand and hydrology (B2)",
+      "label": "Deterministic demand and hydrology",
       "det_demand": true,
       "det_hydro": true,
       "emission_cap": 5000000000.0
     },
     {
       "name": "unc_demand_only",
-      "label": "Stochastic demand only (B2)",
+      "label": "Stochastic demand only",
       "det_hydro": true,
       "emission_cap": 5000000000.0
     },
     {
       "name": "unc_hydro_only",
-      "label": "Stochastic hydrology only (B2)",
+      "label": "Stochastic hydrology only",
       "det_demand": true,
       "emission_cap": 5000000000.0
     },
     {
       "name": "sens_disc3",
-      "label": "Sensitivity disc3 (B4)",
+      "label": "Sensitivity disc3",
       "emission_cap": 5000000000.0,
       "discount": 0.03
     },
     {
       "name": "sens_disc8",
-      "label": "Sensitivity disc8 (B4)",
+      "label": "Sensitivity disc8",
       "emission_cap": 5000000000.0,
       "discount": 0.08
     },
     {
       "name": "sens_voll10k",
-      "label": "Sensitivity voll10k (B4)",
+      "label": "Sensitivity voll10k",
       "emission_cap": 5000000000.0,
       "voll": 10000.0
     },
     {
       "name": "sens_voll40k",
-      "label": "Sensitivity voll40k (B4)",
+      "label": "Sensitivity voll40k",
       "emission_cap": 5000000000.0,
       "voll": 40000.0
     },
     {
       "name": "sens_rm10",
-      "label": "Sensitivity rm10 (B4)",
+      "label": "Sensitivity rm10",
       "emission_cap": 5000000000.0,
       "reserve_margin": 0.1
     },
     {
       "name": "sens_rm20",
-      "label": "Sensitivity rm20 (B4)",
+      "label": "Sensitivity rm20",
       "emission_cap": 5000000000.0,
       "reserve_margin": 0.2
     },
     {
       "name": "sens_cc_lo",
-      "label": "Sensitivity cc_lo (B4)",
+      "label": "Sensitivity cc_lo",
       "emission_cap": 5000000000.0,
       "cap_credit_mult": 0.8
     },
     {
       "name": "sens_cc_hi",
-      "label": "Sensitivity cc_hi (B4)",
+      "label": "Sensitivity cc_hi",
       "emission_cap": 5000000000.0,
       "cap_credit_mult": 1.2
     },
     {
       "name": "sens_mudry_lo",
-      "label": "Sensitivity mudry_lo (B4)",
+      "label": "Sensitivity mudry_lo",
       "emission_cap": 5000000000.0,
       "mu_dry_mult": 0.85
     },
     {
       "name": "sens_mudry_hi",
-      "label": "Sensitivity mudry_hi (B4)",
+      "label": "Sensitivity mudry_hi",
       "emission_cap": 5000000000.0,
       "mu_dry_mult": 1.15
     },
     {
       "name": "storage_zwe",
-      "label": "Battery storage 4h, $1200/kW (B5)",
+      "label": "Battery storage 4h, $1200/kW",
       "storage_capex": 1200000.0,
       "emission_cap": 5000000000.0,
       "storage_eff": 0.85,
@@ -839,12 +833,19 @@
     },
     {
       "name": "storage_zwe_cheap",
-      "label": "Battery storage 4h, $700/kW (B5)",
+      "label": "Battery storage 4h, $700/kW",
       "storage_capex": 700000.0,
       "emission_cap": 5000000000.0,
       "storage_eff": 0.85,
       "storage_credit": 0.9,
       "storage_fom": 25000.0
+    },
+    {
+      "name": "temporal_annual_fixedpeak",
+      "label": "Annual block, four-block peak",
+      "annual_blocks": true,
+      "keep_peak": true,
+      "emission_cap": 5000000000.0
     },
     {
       "name": "risk_cvar",

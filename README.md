@@ -1,60 +1,61 @@
 # Power expansion planning under uncertainty in sub-Saharan Africa
 
-Replication code and data for the paper *Optimal power expansion planning under
-uncertainty in sub-Saharan Africa: A stochastic dual dynamic programming
-approach*, with case studies for Ethiopia and Zimbabwe.
-
-The model is a multistage stochastic generation expansion planning (GEP) problem
-solved with stochastic dual dynamic programming (SDDP.jl and Gurobi). This
-repository holds everything needed to reproduce every result, table, and figure
-in the paper from the two country input datasets.
+Replication code and data for a multistage stochastic generation expansion
+planning (GEP) study of two contrasting power systems, Ethiopia (hydro-rich)
+and Zimbabwe (coal-legacy with carbon policy). The model is solved with
+stochastic dual dynamic programming (SDDP.jl and Gurobi). This repository
+contains everything needed to reproduce the reported results, tables, and
+figures from the two country input datasets.
 
 Repository: <https://github.com/AregaGetaneh/GEP_Ethiopia_and_Zimbabwe_using_SDDP>
-
-Repository: https://github.com/AregaGetaneh/GEP_Ethiopia_and_Zimbabwe_using_SDDP
 
 ## Repository layout
 
 ```
-export_params.py   1. build model inputs: read data/*.xlsx, write params_<CC>.json
-gep_sddp.jl        2. the SDDP model: solve each scenario, write results/<CC>/*.json
-benchmarks.jl      3. value of adaptivity (VSS) and perfect information (EVPI)
-make_figures.py    4. all figures from results/<CC>/*.json      -> figures/
-make_tables.py     5. all LaTeX tables from results/<CC>/*.json  -> tables/
+export_params.py         build model inputs: read data/*.xlsx, write params_<CC>.json
+gep_sddp.jl              the SDDP model: solve each scenario, write results/<CC>/*.json
+benchmarks.jl            value of the stochastic solution (VSS) and of perfect information (EVPI)
+make_figures.py          all figures from results/<CC>/*.json          -> figures/
+make_tables.py           main result tables from results/<CC>/*.json   -> tables/
+make_appendix_tables.py  appendix scenario tables                      -> tables/
+make_supplementary_tables.py    supplementary and robustness tables           -> tables/
 
-params_ETH.json    model-ready inputs for Ethiopia (output of step 1, included)
-params_ZWE.json    model-ready inputs for Zimbabwe (output of step 1, included)
-data/              raw country workbooks the parameters are calibrated from
-  ETHSummary_corrected_like_NSW_filled.xlsx
-  ZWE_Summary_2025_2050.xlsx
-results/           solved scenario outputs, one JSON per scenario (included)
+params_ETH.json          model-ready inputs for Ethiopia (output of export_params.py, included)
+params_ZWE.json          model-ready inputs for Zimbabwe (output of export_params.py, included)
+data/                    country workbooks the parameters are calibrated from
+  ethiopia_data.xlsx
+  zimbabwe_data.xlsx
+results/                 solved scenario outputs, one JSON per scenario (included)
   ETH/  ZWE/
-Project.toml       Julia dependencies
-requirements.txt   Python dependencies
+Project.toml             Julia dependencies
+requirements.txt         Python dependencies
 ```
 
-`<CC>` is the country code, `ETH` or `ZWE`. The solved `results/` JSONs are
-included, so the figures and tables can be regenerated without a Gurobi run.
-Figures and LaTeX tables themselves are produced by the code and are not tracked.
+`<CC>` is the country code, `ETH` or `ZWE`. The solved `results/` JSON files
+are included, so the figures and tables can be regenerated without solving the
+model. The `figures/` and `tables/` output directories are produced by the code
+and are not tracked.
 
 ## Requirements
 
 - Julia 1.9 or later, with the packages pinned in `Project.toml` (SDDP, JuMP,
   Gurobi, JSON).
-- A working Gurobi installation and license. Gurobi is free for academic use.
+- A working Gurobi installation and license (free for academic use). Only the
+  model-solving steps need Gurobi.
 - Python 3.10 or later, with the packages in `requirements.txt` (pandas, numpy,
   matplotlib, openpyxl).
 
-The results in the paper were produced with Julia 1.10.4 and Gurobi 11.0.2.
+The reported results were produced with Julia 1.10.4 and Gurobi 11.0.2.
 
 ## Reproducing the results
 
-Run everything from the repository root. Because the solved `results/` JSONs are
-included, you can jump straight to step 4 to regenerate the figures and tables.
-Steps 1 to 3 re-solve the model from scratch and need a Gurobi license.
+Run everything from the repository root. Because the solved `results/` JSON
+files are included, you can go straight to step 4 to regenerate the figures and
+tables. Steps 1 to 3 re-solve the model from scratch and require a Gurobi
+license.
 
-1. Build the model inputs. This step is optional, because the generated
-   `params_<CC>.json` files are already included.
+1. Build the model inputs. Optional: the generated `params_<CC>.json` files are
+   already included.
    ```
    python export_params.py
    ```
@@ -74,25 +75,28 @@ Steps 1 to 3 re-solve the model from scratch and need a Gurobi license.
    julia --project=. benchmarks.jl ZWE
    ```
 
-4. Generate all figures and tables from the result JSONs.
+4. Generate the figures and tables from the result JSON files.
    ```
    python make_figures.py
    python make_tables.py
+   python make_appendix_tables.py
+   python make_supplementary_tables.py
    ```
    Figures are written to `figures/` and LaTeX table fragments to `tables/`.
 
-Steps 2 and 3 require a Gurobi license and are the only compute-heavy part. Steps
-1 and 4 need only Python. The forward-pass seed and thread count are set inside
-`gep_sddp.jl` for reproducible policies.
+Steps 2 and 3 are the only compute-heavy part and require Gurobi. Steps 1 and 4
+need only Python. The forward-pass seed and thread count are set inside
+`gep_sddp.jl` so the trained policies are reproducible.
 
 ## Data
 
-The two country cases are calibrated from the workbooks in `data/`. Each workbook
+Each country case is calibrated from a single workbook in `data/`. The workbook
 holds the technology cost and performance parameters, the retirement schedule,
-and the demand path for that country. `export_params.py` reads these workbooks,
-applies the calibration described in the paper, and writes the model-ready
-`params_<CC>.json`. The JSON files are included so the model can be run without
-repeating the preprocessing step.
+and the demand path for that country. `export_params.py` reads the workbook,
+applies the calibration described in the accompanying paper (seasonal operating
+blocks, three-state hydrology, construction lead times, the demand-deviation
+process, finance, and salvage), and writes the model-ready `params_<CC>.json`.
+The JSON files are included so the model can be run without repeating this step.
 
 ## Citation
 
@@ -100,14 +104,13 @@ If you use this code or data, please cite:
 
 Arega Getaneh Abate, Xiao-Bing Zhang, Xiufeng Liu, Ruyu Liu, and Per Nielsen.
 *Optimal power expansion planning under uncertainty in sub-Saharan Africa: A
-stochastic dual dynamic programming approach.* Energy Economics.
+stochastic dual dynamic programming approach.* Working paper, 2026.
 
 ```bibtex
-@article{Abate_GEP_SSA,
-  author  = {Abate, Arega Getaneh and Zhang, Xiao-Bing and Liu, Xiufeng and Liu, Ruyu and Nielsen, Per},
-  title   = {Optimal power expansion planning under uncertainty in sub-{S}aharan {A}frica: A stochastic dual dynamic programming approach},
-  journal = {''},
-  year    = {2026}
+@unpublished{Abate_GEP_SSA,
+  author = {Abate, Arega Getaneh and Zhang, Xiao-Bing and Liu, Xiufeng and Liu, Ruyu and Nielsen, Per},
+  title  = {Optimal power expansion planning under uncertainty in sub-{S}aharan {A}frica: A stochastic dual dynamic programming approach},
+  note   = {Working paper},
+  year   = {2026}
 }
 ```
-
