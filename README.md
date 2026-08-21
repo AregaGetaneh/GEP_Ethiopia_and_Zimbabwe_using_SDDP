@@ -45,7 +45,7 @@ and are not tracked.
 - Python 3.10 or later, with the packages in `requirements.txt` (pandas, numpy,
   matplotlib, openpyxl).
 
-The reported results were produced with Julia 1.10.4 and Gurobi 11.0.2.
+The reported results were produced with Julia 1.10.4 and Gurobi 13.0.2.
 
 ## Reproducing the results
 
