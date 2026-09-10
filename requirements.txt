@@ -1,0 +1,8 @@
+# Python dependencies for model/export_params.py and the analysis/ scripts.
+# Pinned to the versions the figures and tables were tested with (Python 3.13).
+# The Python layer only reads the workbooks and the result JSON files and writes
+# figures and LaTeX table fragments, so it does not require Gurobi.
+pandas==3.0.1
+numpy==2.4.3
+matplotlib==3.10.8
+openpyxl==3.1.5

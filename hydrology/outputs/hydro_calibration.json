@@ -1,0 +1,251 @@
+{
+  "schema": "gep-hydro-calibration/1.0",
+  "countries": {
+    "Ethiopia": {
+      "country": "Ethiopia",
+      "gauge": "Blue Nile at El Diem",
+      "sub": "ethiopia_el_diem",
+      "period": [
+        1980,
+        2024
+      ],
+      "n_complete_years": 45,
+      "dropped_partial_years": [
+        [
+          2025,
+          1
+        ]
+      ],
+      "selected_gauge": {
+        "lat": 11.24,
+        "lon": 34.95,
+        "catchment_km2": 176000,
+        "catchment_src": "Upper Blue Nile at El Diem/Eldeim, ~172,000-176,000 km2 (Blue Nile / GERD hydrology literature)"
+      },
+      "selected_grid_cell": {
+        "lat": 11.224999999999998,
+        "lon": 34.974999999999994,
+        "mean_m3s": 1793.7,
+        "dist_deg": 0.0292,
+        "n_channel_cells": 4
+      },
+      "mean_annual_m3s": 1793.8,
+      "terciles_m3s": [
+        1681.4,
+        1929.1
+      ],
+      "n_years_LNH": [
+        15,
+        15,
+        15
+      ],
+      "mu_raw": [
+        0.8354,
+        1.0031,
+        1.1615
+      ],
+      "stationary_weighted_mu_raw": 0.9951,
+      "mu_normalized": [
+        0.8395,
+        1.008,
+        1.1672
+      ],
+      "transition_counts": [
+        [
+          7,
+          3,
+          4
+        ],
+        [
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          7,
+          4
+        ]
+      ],
+      "P_H_empirical": [
+        [
+          0.5,
+          0.2143,
+          0.2857
+        ],
+        [
+          0.2667,
+          0.3333,
+          0.4
+        ],
+        [
+          0.2667,
+          0.4667,
+          0.2667
+        ]
+      ],
+      "stationary_distribution": [
+        0.3478,
+        0.3343,
+        0.3179
+      ],
+      "h1": "L",
+      "hydro_capacity_factor": 0.45,
+      "max_fhy_times_mu": 0.5252,
+      "validation": {
+        "mu_monotone": true,
+        "rows_sum_to_1": true,
+        "counts_reconcile": true,
+        "pi_stationary_maxdev": 1.1102230246251565e-16,
+        "sum_pi_mu_norm": 1.0,
+        "f_hy_mu_max": 0.5252351205622581,
+        "f_hy_mu_le_1": true
+      },
+      "diagnostics": {
+        "transition_sensitivity": {
+          "method": "Jeffreys Dirichlet alpha=0.5 (SENSITIVITY ONLY, not baseline)",
+          "jeffreys_alpha_0_5": [
+            [
+              0.4839,
+              0.2258,
+              0.2903
+            ],
+            [
+              0.2727,
+              0.3333,
+              0.3939
+            ],
+            [
+              0.2727,
+              0.4545,
+              0.2727
+            ]
+          ]
+        }
+      }
+    },
+    "Zimbabwe": {
+      "country": "Zimbabwe",
+      "gauge": "Zambezi at Victoria Falls (Big Tree / Nana's Farm)",
+      "sub": "zimbabwe_victoria_falls",
+      "period": [
+        1980,
+        2024
+      ],
+      "n_complete_years": 45,
+      "dropped_partial_years": [
+        [
+          2025,
+          1
+        ]
+      ],
+      "selected_gauge": {
+        "lat": -17.92,
+        "lon": 25.83,
+        "catchment_km2": 507000,
+        "catchment_src": "Upper Zambezi above Victoria Falls, ~507,000 km2 (Zambezi basin literature)"
+      },
+      "selected_grid_cell": {
+        "lat": -17.925,
+        "lon": 25.825,
+        "mean_m3s": 1159.3,
+        "dist_deg": 0.0071,
+        "n_channel_cells": 6
+      },
+      "mean_annual_m3s": 1159.5,
+      "terciles_m3s": [
+        992.7,
+        1299.7
+      ],
+      "n_years_LNH": [
+        15,
+        15,
+        15
+      ],
+      "mu_raw": [
+        0.6005,
+        1.0048,
+        1.3947
+      ],
+      "stationary_weighted_mu_raw": 0.9979,
+      "mu_normalized": [
+        0.6018,
+        1.007,
+        1.3977
+      ],
+      "transition_counts": [
+        [
+          5,
+          7,
+          2
+        ],
+        [
+          7,
+          2,
+          6
+        ],
+        [
+          3,
+          5,
+          7
+        ]
+      ],
+      "P_H_empirical": [
+        [
+          0.3571,
+          0.5,
+          0.1429
+        ],
+        [
+          0.4667,
+          0.1333,
+          0.4
+        ],
+        [
+          0.2,
+          0.3333,
+          0.4667
+        ]
+      ],
+      "stationary_distribution": [
+        0.3401,
+        0.325,
+        0.3349
+      ],
+      "h1": "L",
+      "hydro_capacity_factor": 0.5,
+      "max_fhy_times_mu": 0.6988,
+      "validation": {
+        "mu_monotone": true,
+        "rows_sum_to_1": true,
+        "counts_reconcile": true,
+        "pi_stationary_maxdev": 1.1102230246251565e-16,
+        "sum_pi_mu_norm": 1.0,
+        "f_hy_mu_max": 0.6988268024072068,
+        "f_hy_mu_le_1": true
+      },
+      "diagnostics": {
+        "transition_sensitivity": {
+          "method": "Jeffreys Dirichlet alpha=0.5 (SENSITIVITY ONLY, not baseline)",
+          "jeffreys_alpha_0_5": [
+            [
+              0.3548,
+              0.4839,
+              0.1613
+            ],
+            [
+              0.4545,
+              0.1515,
+              0.3939
+            ],
+            [
+              0.2121,
+              0.3333,
+              0.4545
+            ]
+          ]
+        }
+      }
+    }
+  }
+}
