@@ -425,8 +425,12 @@ function write_result(path, E, scn, model, oos, sims; extra = Dict())
     salvage_cost   = oos["oos_salv_BUSD"]     # terminal salvage credit on new-build
     refurb_cost    = oos["oos_refurb_BUSD"]   # coal life-extension (coal-exit refurb only)
     planner_obj    = oos["oos_cost_BUSD_mean"]
-    # fair policy-comparison basis: real resources incl. reliability, EXCLUDING the tax transfer
-    net_resource   = gross_resource + voll_cost - salvage_cost + refurb_cost
+    # manuscript "net resource cost": gross resource cost less the terminal salvage credit.
+    # This is the quantity printed in the net-resource-cost column of the Zimbabwe policy table.
+    net_resource   = gross_resource - salvage_cost
+    # manuscript "total expected cost": net resource cost plus the discounted shortage cost,
+    # and coal life-extension cost where the scenario applies one. Excludes the tax transfer.
+    total_expected = gross_resource + voll_cost - salvage_cost + refurb_cost
     recon_resid    = planner_obj - (gross_resource + tax_payment + voll_cost - salvage_cost + refurb_cost)
     eue_TWh        = oos["oos_unmet_TWh_mean"]
 
@@ -446,7 +450,8 @@ function write_result(path, E, scn, model, oos, sims; extra = Dict())
         "y2050_emissions_Mt" => emis[end] / 1e9,
         # --- cost fields (all OOS, all $B discounted) ---
         "gross_resource_BUSD" => gross_resource,       # inv + FOM + variable (no tax, no VoLL)
-        "net_resource_cost_BUSD" => net_resource,      # POLICY-COMPARISON basis: resource + VoLL - salvage (+refurb), excl. tax
+        "net_resource_cost_BUSD" => net_resource,      # manuscript net resource cost: gross - salvage
+        "total_expected_cost_BUSD" => total_expected,  # manuscript total expected cost: gross + VoLL - salvage (+refurb), excl. tax
         "voll_cost_BUSD" => voll_cost,
         "tax_payment_BUSD" => tax_payment,
         "salvage_BUSD" => salvage_cost,

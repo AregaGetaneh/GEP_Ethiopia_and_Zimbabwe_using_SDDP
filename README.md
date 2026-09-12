@@ -145,25 +145,128 @@ jobs. The Python layer runs in a couple of minutes.
 | Fig. 11  Baseline annual system cost | `F12_annual_cost.pdf` | `fig_annual_cost` |
 
 `python analysis/tables.py` writes all result tables (13 fragments) from
-`results/{ETH,ZWE}.json`. The literature-positioning, technology-parameter, and
-calibration-input tables (manuscript Tables 1, 2, and 8) are input and reference
-tables maintained directly in the manuscript and are not generated here.
+`results/{ETH,ZWE}.json`. The literature-positioning, notation, and
+technology-parameter tables (manuscript Tables 1, 2, and 3) are input and
+reference tables maintained directly in the manuscript and are not generated
+here. Manuscript table numbers below follow the published numbering, in which
+the appendix tables carry the prefixes A, B, and C.
 
 | Manuscript table | Generated fragment |
 |---|---|
-| Tab. 3  Ethiopia scenario results | `tables/tex/T1_eth.tex` |
-| Tab. 4  Zimbabwe policy outcomes | `tables/tex/T2_zwe.tex` |
-| Tab. 5  Value-of-adaptive-planning benchmarks | `tables/tex/T4_vss.tex` |
-| Tab. 6  Cross-country baseline comparison | `tables/tex/T3_cross.tex` |
-| Tab. 7  One-at-a-time sensitivity | `tables/tex/sensitivity.tex` |
-| Tab. 9  SDDP training diagnostics | `tables/tex/convergence.tex` |
-| Tab. 10  Robustness checks | `tables/tex/robustness.tex` |
-| Tab. 11  Value of adaptive planning under alternative VoLL | `tables/tex/voll_value_of_adaptive_planning.tex` |
-| Tab. 12  Uncertainty decomposition | `tables/tex/uncertainty_decomposition.tex` |
-| Tab. 13  Scenario de-confounding (panels a, b) | `tables/tex/A1_eth_deconf.tex`, `tables/tex/A2_zwe_coalexit.tex` |
+| Tab. 4  Ethiopia scenario results | `tables/tex/T1_eth.tex` |
+| Tab. 5  Zimbabwe policy outcomes | `tables/tex/T2_zwe.tex` |
+| Tab. 6  Value-of-adaptive-planning benchmarks | `tables/tex/T4_vss.tex` |
+| Tab. 7  Cross-country baseline comparison | `tables/tex/T3_cross.tex` |
+| Tab. 8  One-at-a-time sensitivity | `tables/tex/sensitivity.tex` |
+| Tab. B.13  SDDP training diagnostics | `tables/tex/convergence.tex` |
+| Tab. B.14  Robustness checks | `tables/tex/robustness.tex` |
+| Tab. C.15  Value of adaptive planning under alternative VoLL | `tables/tex/voll_value_of_adaptive_planning.tex` |
+| Tab. C.16  Uncertainty decomposition | `tables/tex/uncertainty_decomposition.tex` |
+| Tab. C.17  Scenario de-confounding (panels a, b) | `tables/tex/A1_eth_deconf.tex`, `tables/tex/A2_zwe_coalexit.tex` |
+
+The net-resource-cost column of manuscript Table 5 is not part of the generated
+`T2_zwe.tex` fragment. It is `net_resource_cost_BUSD`, defined below.
 
 `tables.py` also writes two complete-scenario tables (`A3_eth_full.tex`,
 `A4_zwe_full.tex`) that are supplementary to the manuscript.
+
+## Cost fields in `results/<CC>.json`
+
+Every cost field is an out-of-sample expectation in discounted billion US
+dollars. The paper uses four cost measures and each has its own field. They
+differ in how the terminal salvage credit, the shortage cost, and the carbon-tax
+transfer are treated, so they are not interchangeable.
+
+| Field | Definition | Manuscript term |
+|---|---|---|
+| `gross_resource_BUSD` | investment + fixed O&M + variable cost. No tax, no shortage cost, no salvage. | gross resource cost |
+| `net_resource_cost_BUSD` | `gross_resource_BUSD - salvage_BUSD` | net resource cost |
+| `total_expected_cost_BUSD` | `gross_resource_BUSD + voll_cost_BUSD - salvage_BUSD + refurb_cost_BUSD` | total expected cost |
+| `cash_cost_BUSD` | `gross_resource_BUSD + tax_payment_BUSD` | cash cost |
+| `voll_cost_BUSD` | value of lost load times expected unserved energy | shortage cost |
+| `tax_payment_BUSD` | carbon-tax payment, a transfer excluded from every resource-cost measure | carbon-tax transfer |
+| `salvage_BUSD` | terminal salvage credit on new build | terminal salvage credit |
+| `refurb_cost_BUSD` | recurring continued-operation cost charged to inherited coal. Non-zero only in `coal_retire_refurb`. | continued-operation cost |
+| `finance_subsidy_BUSD` | grant-equivalent value of concessional financing. Non-zero only in `combined_tax50_solar`. | concessional financing |
+| `planner_objective_BUSD` | the solved objective, which does include the tax payment | planner objective |
+| `reconciliation_residual_BUSD` | `planner_objective_BUSD` less the sum of its components. Approximately zero; a non-zero value indicates a capacity-slack penalty. | diagnostic, not reported |
+
+Four aliases are kept for backward compatibility: `resource_cost_BUSD` repeats
+`gross_resource_BUSD`, `reliability_cost_BUSD` repeats `voll_cost_BUSD`,
+`tax_transfer_BUSD` repeats `tax_payment_BUSD`, and `total_cost_BUSD` repeats
+`planner_objective_BUSD`.
+
+Result files written before September 2026 carried a single field,
+`net_resource_cost_BUSD`, holding what is now `total_expected_cost_BUSD`. Run
+`python analysis/migrate_cost_schema.py` to bring such a file onto the current
+schema; `--check` reports without writing. The script applies exactly the two
+definitions above and verifies each scenario before rewriting it. The archived
+files in this repository are already migrated.
+
+## Scenario keys
+
+Scenario keys in `results/<CC>.json` are the manifest names from
+`model/export_params.py`. Several predate the manuscript's final wording and are
+kept unchanged so that existing scripts and archived outputs keep working.
+
+| Repository key | Manuscript scenario | Country |
+|---|---|---|
+| `baseline` | baseline | both |
+| `unc_deterministic` | no uncertainty represented (uncertainty decomposition) | both |
+| `unc_demand_only` | demand uncertainty only | both |
+| `unc_hydro_only` | hydrological uncertainty only | both |
+| `drought_stress` | **low-inflow stress** (every planning year fixed to the low-inflow condition) | both |
+| `gh9` | robustness check with **nine Gauss-Hermite demand nodes** instead of the baseline five | both |
+| `hydro_persist_hi` / `hydro_persist_lo` | more / less persistent hydrology | both |
+| `sens_disc3` / `sens_disc8` | discount rate 3% / 8% | both |
+| `sens_voll5k` / `sens_voll20k` | VoLL $5,000 / $20,000 per MWh | both |
+| `sens_mudry_lo` / `sens_mudry_hi` | low-inflow multiplier -15% / +15% | both |
+| `re_inv_minus30` / `re_inv_minus50` | renewable investment cost -30% / -50% | Ethiopia |
+| `learning_curves` | learning-curve cost trajectory | Ethiopia |
+| `solar_only_50` | solar-only investment cost -50% | Ethiopia |
+| `accelerated_access` | accelerated access, 50 TWh by 2030 | Ethiopia |
+| `high_demand_expanded` | high demand with expanded ceilings | Ethiopia |
+| `high_demand_fixedceil` | high demand with baseline ceilings | Ethiopia |
+| `constrained_hydro` | constrained hydropower, new build limited to 3 GW | Ethiopia |
+| `carbon_tax_30` / `carbon_tax_50` | carbon tax $30 / $50 per tCO2 | Zimbabwe |
+| `emission_cap_glide` | glide-path cap, 8 to 3 MtCO2 per year | Zimbabwe |
+| `cap_matched_30` / `cap_matched_50` | annual cap matched to the $30 / $50 tax | Zimbabwe |
+| `combined_tax50_solar` | $50 tax with concessional solar financing | Zimbabwe |
+| `re_inv_m50` | renewable investment cost -50% | Zimbabwe |
+| `high_demand` | high demand | Zimbabwe |
+| `coal_retire_fixed` | coal exit, schedule only | Zimbabwe |
+| `coal_retire_delayed` | coal exit, delayed retirement floor | Zimbabwe |
+| `coal_retire_refurb` | coal exit with **continued-operation cost** on inherited coal | Zimbabwe |
+
+## Resource and deployment ceilings
+
+Each technology carries an upper bound on cumulative installed capacity,
+`X_te <= Xbar_e`, imposed through equation (4j) of the paper. These bounds are
+author-defined long-term planning assumptions that express the scale of
+deployment considered feasible over the 2025-2050 horizon, informed by the
+existing system, development plans, broad resource availability and endowment,
+and technology costs. They are not estimates of technical resource potential.
+
+The production values are set in `COUNTRY[cc]["ub"]` in `model/export_params.py`
+and are recorded for documentation in the `Conversion` and `Assumptions` sheets of
+the country workbooks:
+
+| Technology | Ethiopia (MW) | Zimbabwe (MW) |
+|---|---|---|
+| Hydro | 15,000 | 5,000 |
+| Wind | 10,000 | -- |
+| Solar PV | 10,000 | 5,000 |
+| Geothermal | 5,000 | -- |
+| Coal | -- | 1,900 |
+| Gas | -- | 3,000 |
+| Bioenergy | 3,000 | 1,000 |
+
+Three Ethiopia scenarios change these bounds. `accelerated_access` and
+`high_demand_expanded` raise hydro, wind, and solar to 20,000, 15,000, and
+15,000 MW through `ub_override`. `constrained_hydro` instead caps cumulative new
+hydro build at 3,000 MW through `new_build_cap`, giving a total hydro bound of
+12,213 MW. `high_demand_fixedceil` keeps the baseline bounds, which is what
+distinguishes it from `high_demand_expanded`.
 
 ## Hydrology inputs
 

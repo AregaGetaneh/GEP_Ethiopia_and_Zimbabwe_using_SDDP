@@ -474,7 +474,7 @@
         "scenario": "cap_matched_30",
         "wall_s": 1425.565230598
       },
-      "net_resource_cost_BUSD": 10.28389407233841,
+      "net_resource_cost_BUSD": 10.031361481114992,
       "oos": {
         "oos_cost_BUSD_ci": 0.05141076888706101,
         "oos_cost_BUSD_mean": 10.283894072338406,
@@ -732,7 +732,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 1425.565230598
-      }
+      },
+      "total_expected_cost_BUSD": 10.28389407233841
     },
     "cap_matched_50": {
       "avg_emissions_Mt": 1.4530028799638854,
@@ -1207,7 +1208,7 @@
         "scenario": "cap_matched_50",
         "wall_s": 1451.814325416
       },
-      "net_resource_cost_BUSD": 10.59422327204778,
+      "net_resource_cost_BUSD": 10.295000386328248,
       "oos": {
         "oos_cost_BUSD_ci": 0.05617613459853848,
         "oos_cost_BUSD_mean": 10.594223272047778,
@@ -1465,7 +1466,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 1451.814325416
-      }
+      },
+      "total_expected_cost_BUSD": 10.59422327204778
     },
     "emission_cap_glide": {
       "avg_emissions_Mt": 1.9397736196078676,
@@ -1936,7 +1938,7 @@
         "scenario": "emission_cap_glide",
         "wall_s": 748.596465749
       },
-      "net_resource_cost_BUSD": 11.31091139035442,
+      "net_resource_cost_BUSD": 10.765760154004404,
       "oos": {
         "oos_cost_BUSD_ci": 0.07113765558367675,
         "oos_cost_BUSD_mean": 11.310911390354418,
@@ -2188,7 +2190,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 748.596465749
-      }
+      },
+      "total_expected_cost_BUSD": 11.31091139035442
     },
     "baseline": {
       "avg_emissions_Mt": 2.795363000551269,
@@ -2659,7 +2662,7 @@
         "scenario": "baseline",
         "wall_s": 410.748079722
       },
-      "net_resource_cost_BUSD": 9.850362509969752,
+      "net_resource_cost_BUSD": 9.688501323303177,
       "oos": {
         "oos_cost_BUSD_ci": 0.040185344586467976,
         "oos_cost_BUSD_mean": 9.850362509969758,
@@ -2911,7 +2914,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 410.748079722
-      }
+      },
+      "total_expected_cost_BUSD": 9.850362509969752
     },
     "carbon_tax_30": {
       "avg_emissions_Mt": 1.7836539200995811,
@@ -3382,7 +3386,7 @@
         "scenario": "carbon_tax_30",
         "wall_s": 307.348045094
       },
-      "net_resource_cost_BUSD": 10.098752322231404,
+      "net_resource_cost_BUSD": 9.933397237393011,
       "oos": {
         "oos_cost_BUSD_ci": 0.041471719419258944,
         "oos_cost_BUSD_mean": 10.870080810223268,
@@ -3634,7 +3638,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 307.348045094
-      }
+      },
+      "total_expected_cost_BUSD": 10.098752322231404
     },
     "carbon_tax_50": {
       "avg_emissions_Mt": 1.4705208040137403,
@@ -4105,7 +4110,7 @@
         "scenario": "carbon_tax_50",
         "wall_s": 352.365343085
       },
-      "net_resource_cost_BUSD": 10.2648810254855,
+      "net_resource_cost_BUSD": 10.086580840816925,
       "oos": {
         "oos_cost_BUSD_ci": 0.04178334064190365,
         "oos_cost_BUSD_mean": 11.344550789976447,
@@ -4357,7 +4362,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 352.365343085
-      }
+      },
+      "total_expected_cost_BUSD": 10.2648810254855
     },
     "coal_retire_delayed": {
       "avg_emissions_Mt": 2.935674113780025,
@@ -4828,7 +4834,7 @@
         "scenario": "coal_retire_delayed",
         "wall_s": 290.925661851
       },
-      "net_resource_cost_BUSD": 9.8489820613178,
+      "net_resource_cost_BUSD": 9.669568503244,
       "oos": {
         "oos_cost_BUSD_ci": 0.04062494355694175,
         "oos_cost_BUSD_mean": 9.848982061317797,
@@ -5080,7 +5086,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 290.925661851
-      }
+      },
+      "total_expected_cost_BUSD": 9.8489820613178
     },
     "coal_retire_fixed": {
       "avg_emissions_Mt": 2.900958311089395,
@@ -5551,7 +5558,7 @@
         "scenario": "coal_retire_fixed",
         "wall_s": 395.10728787
       },
-      "net_resource_cost_BUSD": 9.90063203408956,
+      "net_resource_cost_BUSD": 9.728425345161531,
       "oos": {
         "oos_cost_BUSD_ci": 0.038675071560428764,
         "oos_cost_BUSD_mean": 9.900632034241818,
@@ -5803,7 +5810,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 395.10728787
-      }
+      },
+      "total_expected_cost_BUSD": 9.90063203408956
     },
     "coal_retire_refurb": {
       "avg_emissions_Mt": 1.4061295290876534,
@@ -6274,7 +6282,7 @@
         "scenario": "coal_retire_refurb",
         "wall_s": 477.71380852
       },
-      "net_resource_cost_BUSD": 12.26149763477185,
+      "net_resource_cost_BUSD": 10.921950876929301,
       "oos": {
         "oos_cost_BUSD_ci": 0.04286747565737352,
         "oos_cost_BUSD_mean": 12.261497634771853,
@@ -6526,7 +6534,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 477.71380852
-      }
+      },
+      "total_expected_cost_BUSD": 12.26149763477185
     },
     "combined_tax50_solar": {
       "avg_emissions_Mt": 1.3262114350768535,
@@ -6997,7 +7006,7 @@
         "scenario": "combined_tax50_solar",
         "wall_s": 670.949394739
       },
-      "net_resource_cost_BUSD": 8.907851785603476,
+      "net_resource_cost_BUSD": 8.730349052897711,
       "oos": {
         "oos_cost_BUSD_ci": 0.0426181460557806,
         "oos_cost_BUSD_mean": 9.848058934964623,
@@ -7249,7 +7258,8 @@
         "termination": "iteration_limit",
         "train_seed": 12345,
         "wall_s": 670.949394739
-      }
+      },
+      "total_expected_cost_BUSD": 8.907851785603476
     },
     "drought_stress": {
       "avg_emissions_Mt": 3.8376453378843083,
@@ -7720,7 +7730,7 @@
         "scenario": "drought_stress",
         "wall_s": 281.677120856
       },
-      "net_resource_cost_BUSD": 11.233040165824894,
+      "net_resource_cost_BUSD": 10.989298790983185,
       "oos": {
         "oos_cost_BUSD_ci": 0.04630946531486556,
         "oos_cost_BUSD_mean": 11.233040165824896,
@@ -7972,7 +7982,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 281.677120856
-      }
+      },
+      "total_expected_cost_BUSD": 11.233040165824894
     },
     "gh9": {
       "avg_emissions_Mt": 2.699433200856387,
@@ -8443,7 +8454,7 @@
         "scenario": "gh9",
         "wall_s": 377.507250369
       },
-      "net_resource_cost_BUSD": 9.851081283584175,
+      "net_resource_cost_BUSD": 9.683571199269895,
       "oos": {
         "oos_cost_BUSD_ci": 0.03677175299690924,
         "oos_cost_BUSD_mean": 9.851081283584174,
@@ -8695,7 +8706,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 377.507250369
-      }
+      },
+      "total_expected_cost_BUSD": 9.851081283584175
     },
     "high_demand": {
       "avg_emissions_Mt": 2.987878356200345,
@@ -9166,7 +9178,7 @@
         "scenario": "high_demand",
         "wall_s": 363.987974411
       },
-      "net_resource_cost_BUSD": 12.864354031417378,
+      "net_resource_cost_BUSD": 12.502788714054784,
       "oos": {
         "oos_cost_BUSD_ci": 0.05673959561342945,
         "oos_cost_BUSD_mean": 12.864354031417376,
@@ -9418,7 +9430,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 363.987974411
-      }
+      },
+      "total_expected_cost_BUSD": 12.864354031417378
     },
     "hydro_persist_hi": {
       "avg_emissions_Mt": 2.7168181062269743,
@@ -9889,7 +9902,7 @@
         "scenario": "hydro_persist_hi",
         "wall_s": 455.237160517
       },
-      "net_resource_cost_BUSD": 9.893678823929488,
+      "net_resource_cost_BUSD": 9.733428701360705,
       "oos": {
         "oos_cost_BUSD_ci": 0.03771155233204357,
         "oos_cost_BUSD_mean": 9.893678823929488,
@@ -10141,7 +10154,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 455.237160517
-      }
+      },
+      "total_expected_cost_BUSD": 9.893678823929488
     },
     "hydro_persist_lo": {
       "avg_emissions_Mt": 2.708449149580616,
@@ -10612,7 +10626,7 @@
         "scenario": "hydro_persist_lo",
         "wall_s": 330.161707561
       },
-      "net_resource_cost_BUSD": 9.861817764607512,
+      "net_resource_cost_BUSD": 9.701872639766588,
       "oos": {
         "oos_cost_BUSD_ci": 0.037428800862161535,
         "oos_cost_BUSD_mean": 9.861817764607512,
@@ -10864,7 +10878,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 330.161707561
-      }
+      },
+      "total_expected_cost_BUSD": 9.861817764607512
     },
     "re_inv_m50": {
       "avg_emissions_Mt": 1.3449962180755124,
@@ -11335,7 +11350,7 @@
         "scenario": "re_inv_m50",
         "wall_s": 810.741421256
       },
-      "net_resource_cost_BUSD": 7.5649959843445,
+      "net_resource_cost_BUSD": 7.4310213237226375,
       "oos": {
         "oos_cost_BUSD_ci": 0.030581198691442112,
         "oos_cost_BUSD_mean": 7.5649959843445,
@@ -11587,7 +11602,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 810.741421256
-      }
+      },
+      "total_expected_cost_BUSD": 7.5649959843445
     },
     "sens_disc3": {
       "avg_emissions_Mt": 2.0884277538202967,
@@ -12058,7 +12074,7 @@
         "scenario": "sens_disc3",
         "wall_s": 321.455364716
       },
-      "net_resource_cost_BUSD": 11.445436715019413,
+      "net_resource_cost_BUSD": 11.256274672023304,
       "oos": {
         "oos_cost_BUSD_ci": 0.04635668932925673,
         "oos_cost_BUSD_mean": 11.445436715019412,
@@ -12310,7 +12326,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 321.455364716
-      }
+      },
+      "total_expected_cost_BUSD": 11.445436715019413
     },
     "sens_disc8": {
       "avg_emissions_Mt": 3.9045998246531406,
@@ -12781,7 +12798,7 @@
         "scenario": "sens_disc8",
         "wall_s": 250.841709505
       },
-      "net_resource_cost_BUSD": 7.913212993374736,
+      "net_resource_cost_BUSD": 7.768518984725039,
       "oos": {
         "oos_cost_BUSD_ci": 0.03452406203260833,
         "oos_cost_BUSD_mean": 7.913212993374739,
@@ -13033,7 +13050,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 250.841709505
-      }
+      },
+      "total_expected_cost_BUSD": 7.913212993374736
     },
     "sens_mudry_hi": {
       "avg_emissions_Mt": 2.4964132834531627,
@@ -13504,7 +13522,7 @@
         "scenario": "sens_mudry_hi",
         "wall_s": 265.783286507
       },
-      "net_resource_cost_BUSD": 9.592900003014337,
+      "net_resource_cost_BUSD": 9.428183129026664,
       "oos": {
         "oos_cost_BUSD_ci": 0.0449336394691689,
         "oos_cost_BUSD_mean": 9.592900003014341,
@@ -13756,7 +13774,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 265.783286507
-      }
+      },
+      "total_expected_cost_BUSD": 9.592900003014337
     },
     "sens_mudry_lo": {
       "avg_emissions_Mt": 3.047699859918895,
@@ -14227,7 +14246,7 @@
         "scenario": "sens_mudry_lo",
         "wall_s": 311.185525017
       },
-      "net_resource_cost_BUSD": 10.189037790897268,
+      "net_resource_cost_BUSD": 10.00610690651867,
       "oos": {
         "oos_cost_BUSD_ci": 0.04122958181338509,
         "oos_cost_BUSD_mean": 10.189037790897268,
@@ -14479,7 +14498,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 311.185525017
-      }
+      },
+      "total_expected_cost_BUSD": 10.189037790897268
     },
     "sens_voll20k": {
       "avg_emissions_Mt": 2.566136954848801,
@@ -14950,7 +14970,7 @@
         "scenario": "sens_voll20k",
         "wall_s": 397.505410761
       },
-      "net_resource_cost_BUSD": 9.951743432162775,
+      "net_resource_cost_BUSD": 9.779095589160079,
       "oos": {
         "oos_cost_BUSD_ci": 0.047227607714688376,
         "oos_cost_BUSD_mean": 9.951743432162774,
@@ -15202,7 +15222,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 397.505410761
-      }
+      },
+      "total_expected_cost_BUSD": 9.951743432162775
     },
     "sens_voll5k": {
       "avg_emissions_Mt": 2.6801230040991664,
@@ -15673,7 +15694,7 @@
         "scenario": "sens_voll5k",
         "wall_s": 325.197757248
       },
-      "net_resource_cost_BUSD": 9.77602527005427,
+      "net_resource_cost_BUSD": 9.597735553731644,
       "oos": {
         "oos_cost_BUSD_ci": 0.03401996771984399,
         "oos_cost_BUSD_mean": 9.776025270054268,
@@ -15925,7 +15946,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 325.197757248
-      }
+      },
+      "total_expected_cost_BUSD": 9.77602527005427
     },
     "unc_demand_only": {
       "avg_emissions_Mt": 2.2812061587434167,
@@ -16396,7 +16418,7 @@
         "scenario": "unc_demand_only",
         "wall_s": 180.032777535
       },
-      "net_resource_cost_BUSD": 8.729527808078752,
+      "net_resource_cost_BUSD": 8.635789489409953,
       "oos": {
         "oos_cost_BUSD_ci": 0.026238712209349924,
         "oos_cost_BUSD_mean": 8.72952780807875,
@@ -16648,7 +16670,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 180.032777535
-      }
+      },
+      "total_expected_cost_BUSD": 8.729527808078752
     },
     "unc_deterministic": {
       "avg_emissions_Mt": 1.2913077931990136,
@@ -17119,7 +17142,7 @@
         "scenario": "unc_deterministic",
         "wall_s": 53.674506622
       },
-      "net_resource_cost_BUSD": 8.126171431142035,
+      "net_resource_cost_BUSD": 8.118762826048247,
       "oos": {
         "oos_cost_BUSD_ci": 3.9655720849432484e-16,
         "oos_cost_BUSD_mean": 8.126171431142023,
@@ -17371,7 +17394,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 53.674506622
-      }
+      },
+      "total_expected_cost_BUSD": 8.126171431142035
     },
     "unc_hydro_only": {
       "avg_emissions_Mt": 2.391847472337342,
@@ -17842,7 +17866,7 @@
         "scenario": "unc_hydro_only",
         "wall_s": 84.838719383
       },
-      "net_resource_cost_BUSD": 9.004282110757678,
+      "net_resource_cost_BUSD": 8.989104955127788,
       "oos": {
         "oos_cost_BUSD_ci": 0.006866780009224146,
         "oos_cost_BUSD_mean": 9.004282110757678,
@@ -18094,7 +18118,8 @@
         "termination": "converged (robust_gap_upper)",
         "train_seed": 12345,
         "wall_s": 84.838719383
-      }
+      },
+      "total_expected_cost_BUSD": 9.004282110757678
     }
   },
   "benchmarks": {
