@@ -1,0 +1,36 @@
+#!/bin/bash
+### Solve every scenario for one country, then the adaptive-planning and
+### perfect-information benchmarks. DTU HPC / LSF.
+###
+### Submit from the repository root:
+###   bsub -env "CC=ETH" < hpc/submit_country.lsf
+###   bsub -env "CC=ZWE" < hpc/submit_country.lsf
+#BSUB -J gep_sddp
+#BSUB -q hpc
+#BSUB -n 8
+#BSUB -R "rusage[mem=8GB] span[hosts=1]"
+#BSUB -W 24:00
+#BSUB -o hpc/logs/gep_%J.out
+#BSUB -e hpc/logs/gep_%J.err
+
+set -euo pipefail
+
+module load julia/1.10.4
+module load gurobi/11.0.2
+
+export GUROBI_HOME="${GUROBI_HOME:?set by the gurobi module}"
+export GRB_LICENSE_FILE="${GRB_LICENSE_FILE:?path to gurobi.lic}"
+
+cd "$LS_SUBCWD"
+mkdir -p hpc/logs
+
+CC="${CC:?set the country with -env \"CC=ETH\" or -env \"CC=ZWE\"}"
+export JULIA_NUM_THREADS=${LSB_DJOB_NUMPROC:-8}
+
+echo "=== [$CC] scenarios ==="
+julia --project=. model/run_production.jl "$CC" all
+
+echo "=== [$CC] benchmarks ==="
+julia --project=. model/benchmarks.jl "$CC" "results/$CC/benchmarks"
+
+echo "=== [$CC] complete: results/$CC/ ==="
