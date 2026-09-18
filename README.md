@@ -30,9 +30,9 @@ model/                         the SDDP model and the input builder
   run_production.jl          manifest-driven driver: solve a scenario group or all
   benchmarks.jl              value of adaptive planning (VSS) and of perfect information (EVPI)
 
-analysis/                    figures and tables from the solved results (Python, no solver)
-  figures.py                 figure PDFs                 -> figures/  (generated)
-  tables.py                  all result tables (LaTeX)   -> tables/tex/ (generated)
+analysis/                    figures and tables from the solved results (Python)
+  figures.py                 figure PDFs                 -> figures
+  tables.py                  all result tables (LaTeX)   -> tables/tex
   consolidate.py             bundle per-scenario solver output -> results/<CC>.json
 
 data/                        input data and generated model inputs
@@ -41,7 +41,7 @@ data/                        input data and generated model inputs
   params_ETH.json            model inputs built by export_params.py
   params_ZWE.json
 
-hydrology/                   inflow-calibration sub-package (see hydrology/README.md)
+hydrology/                   inflow-calibration sub-package
   scripts/                   download and calibration code
   outputs/                   calibrated contract read by export_params.py
   data/derived/              annual discharge, states, and transition tables
@@ -52,8 +52,8 @@ results/                     consolidated solved results, one file per country
 hpc/                         cluster submission
   submit_country.lsf         LSF job script: solve one country, then its benchmarks
 
-Project.toml, Manifest.toml  Julia dependencies (exact pinned versions)
-requirements.txt             Python dependencies (pinned)
+Project.toml, Manifest.toml  Julia dependencies 
+requirements.txt             Python dependencies 
 LICENSE                      MIT license for the code
 ```
 
@@ -117,7 +117,7 @@ pip install -r requirements.txt
 ## Hardware and runtime
 
 Results were produced on a Linux x86-64 cluster under Julia 1.10.4 and Gurobi
-13.0.2. Each scenario needs one CPU core and roughly 2 to 4 GB of memory; no GPU
+13.0.2. Each scenario needs one CPU core and roughly 2 to 4 GB of memory, no GPU
 is required. A baseline scenario trains on a single core in a few minutes; the
 exact wall time depends on the Gurobi license mode (a node-locked license is
 faster than a floating token server) and on the per-scenario iteration count,
@@ -125,7 +125,7 @@ which is recorded together with the wall time in each scenario's provenance in
 `results/<CC>.json`. Scenarios are independent and can be submitted as separate
 jobs.
 
-## Manuscript artifacts
+## Manuscript figures and tables
 
 `python analysis/figures.py` writes the 13 figure files used in the manuscript
 (`--all` adds six supplementary figures not shown in the paper). All figures read
